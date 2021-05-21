@@ -1,0 +1,217 @@
+name: Integration Test
+on: 
+  push:
+    branches: 
+      - feature/integration-tests
+  pull_request: 
+    branches: 
+      - feature/integration-tests 
+jobs: 
+  check: 
+    runs-on: ubuntu-latest 
+    outputs: 
+      packages: ${{ steps.filter.outputs.changes }} 
+    steps:
+    - name: Checkout the current repo
+      uses: actions/checkout@v1 
+    - uses: dorny/paths-filter@v2 
+      id: filter 
+      with: 
+        filters: | 
+          kafkachanges: 
+            - 'kafka-http-connector/**'
+          rabbitmqchanges: 
+            - 'rabbitmq-http-connector/**' 
+          sqschanges: 
+            - 'aws-sqs-http-connector/**' 
+          natschanges: 
+            - 'nats-streaming-http-connector/**'
+# job for nats streaming http connector
+  nats: 
+  needs: check 
+  if: contains(needs.check.outputs.packages, 'natschanges') 
+  runs-on: ubuntu-latest 
+  steps: 
+    - name: Checkout the current repo 
+      uses: actions/checkout@v1 
+    - name: Create kind cluster 
+      uses: helm/kind-action@v1.1.0 
+    - name: install keda and fission 
+      run: |
+        chmod +x test/install.sh 
+        test/install.sh 
+    - name: Create Docker Image for Nats Streaming KEDA Connector 
+      run: | 
+        cd nats-streaming-http-connector/ 
+        docker build -t localhost:5000/nats-steaming:latest . 
+        docker push localhost:5000/nats-steaming:latest 
+    - name: Create Nats Streaming server 
+      run: | 
+        cd nats-streaming-http-connector/test/nats-streaming-server
+        kubectl apply -f nats-dep.yaml
+
+    - name: Publish messages to nats server 
+      run: |
+        cd nats-streaming-http-connector/test/producer 
+        docker build -t localhost:5000/producer:latest . 
+        docker push localhost:5000/producer:latest 
+        kubectl create deployment nats-pub --image=localhost:5000/producer:latest 
+        kubectl wait pod -l app=nats-pub --for=condition=ready --timeout=30s 
+    - name: Run fission for nats connector 
+      run: | 
+        fission mqt create --name natstest --function helloworld --mqtype stan --topic hello \ 
+        --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello \
+        --metadata queueGroup=grp1 --metadata durableName=due \ --metadata natsServerMonitoringEndpoint=nats.default.svc.cluster.local:8222 \
+        --metadata clusterId=test-cluster --metadata clientId=stan-sub \ --metadata natsServer=nats://nats:4222 
+    - name: Validate and test nats connector
+      run: | 
+        sleep 2 
+        kubectl get pods kubectl wait pod -l app=natstest --for=condition=ready --timeout=30s 
+        kubectl logs -l app=natstest --all-containers=true 
+# job for kafka connector
+  kafka: 
+  needs: check 
+  if: contains(needs.check.outputs.packages, 'kafkachanges') 
+  runs-on: ubuntu-latest 
+  steps: 
+    - name: Checkout the current repo 
+      uses: actions/checkout@v1 
+    - name: Create kind cluster 
+      uses: helm/kind-action@v1.1.0 
+    - name: install keda and fission 
+      run: | 
+        chmod +x test/install.sh test/install.sh 
+    - name: Create Docker Image for Kafka KEDA Connector 
+      run: | 
+        cd kafka-http-connector/ 
+        docker build -t localhost:5000/kafka-connector:latest . 
+        docker push localhost:5000/kafka-connector:latest 
+    - name: Deploy Kafka cluster 
+      run: | 
+        cd kafka-http-connector/test/kubernetes/ 
+        kubectl create namespace kafka 
+        curl -L http://strimzi.io/install/latest | sed 's/namespace: .*/namespace: kafka/' | kubectl apply -f - -n kafka 
+        sleep 10s 
+        kubectl apply -f kafka-cluster.yaml 
+        echo "Kafka Cluster is getting up." 
+        kubectl wait -f kafka-cluster.yaml --for=condition=ready --timeout=-1s -n kafka 
+        sleep 2m 
+        kubectl get pods -n kafka 
+        kubectl wait pod -l app.kubernetes.io/name=zookeeper --for=condition=ready --timeout=-1s -n kafka 
+    - name: Create Kafka topics 
+      run: | 
+        cd kafka-http-connector/test/kubernetes/ 
+        kubectl apply -f kafka-req-topic.yaml 
+        kubectl apply -f kafka-err-topic.yaml 
+        kubectl apply -f kafka-res-topic.yaml 
+    - name: Run fission for kafka connector 
+      run: | 
+        fission mqt create --name kafkatest --function helloworld --mqtype kafka \
+        --mqtkind keda --topic request-topic --resptopic response-topic \ 
+        --errortopic error-topic --maxretries 3 \ 
+        --metadata bootstrapServers=my-cluster-test-kafka-bootstrap.kafka.svc:9092 \ 
+        --metadata consumerGroup=bridge-quickstart-consumer-group --metadata topic=request-topic \ 
+        --cooldownperiod=30 --pollinginterval=5 
+    - name: Produce Kafka messages Using Producer 
+      run: | 
+        cd kafka-http-connector/test/kubernetes/ 
+        kubectl apply -f kafka-produer.yaml 
+        kubectl wait -f kafka-produer.yaml --for=condition=complete --timeout=-1s 
+        kubectl delete job pi kubectl logs -l app=kafkatest --all-containers=true
+
+  rabbitmq: 
+  needs: check 
+  if: contains(needs.check.outputs.packages, 'rabbitmqchanges') 
+  runs-on: ubuntu-latest 
+  steps: 
+    - name: Checkout the current repo 
+      uses: actions/checkout@v1 
+    - name: Create kind cluster 
+      uses: helm/kind-action@v1.1.0 
+    - name: install keda and fission 
+      run: | 
+        chmod +x test/install.sh test/install.sh 
+    - name: Create Docker Image for Rabbitmq KEDA Connector 
+      run: | 
+        cd rabbitmq-http-connector/ 
+        docker build -t localhost:5000/rabbit-keda:latest . 
+        docker push localhost:5000/rabbit-keda:latest 
+    - name: Create Rabbitmq Docker Image for Publisher 
+      run: | 
+        cd rabbitmq-http-connector/test/publisher/ 
+        docker build -t localhost:5000/rabbit-publisher:latest . 
+        docker push localhost:5000/rabbit-publisher:latest 
+    - name: Create Rabbitmq Docker Image for Consumer 
+      run: | 
+        cd rabbitmq-http-connector/test/consumer/ 
+        docker build -t localhost:5000/rabbit-consumer:latest . 
+        docker push localhost:5000/rabbit-consumer:latest 
+    - name: Deploy Rabbitmq Deployment files 
+      run: | 
+        cd rabbitmq-http-connector/test/kubernetes/ 
+        kubectl create ns rabbits 
+        kubectl apply -n rabbits -f rabbit-rbac.yaml 
+        kubectl apply -n rabbits -f rabbit-configmap.yaml 
+        kubectl apply -n rabbits -f rabbit-secret.yaml 
+        kubectl apply -n rabbits -f rabbit-statefulset.yaml 
+        bash rabbitmq-cluster-instances.sh 
+    - name: Publish Rabbitmq messages in a queue 
+      run: | 
+        cd rabbitmq-http-connector/test/publisher/ 
+        kubectl apply -f deployment.yaml 
+        kubectl apply -f publisher-job.yaml 
+    - name: Bring up the Rabbitmq consumer queue and Listen for incoming messages
+      run: | 
+        cd rabbitmq-http-connector/test/consumer/ 
+        kubectl apply -f consumer-deployment.yaml 
+    - name: Run fission for rabbitmq connector 
+      run: | 
+        fission mqt create --name rabbitmqtest --function helloworld --mqtype rabbitmq \ 
+        --topic request --resptopic response --mqtkind keda --errortopic error --maxretries 3 \
+        --metadata queueName=request --cooldownperiod=30 --pollinginterval=5 \ 
+        --secret rabbitmq-consumer kubectl wait pod -l app=rabbitmqtest --for=condition=ready --timeout=-1s 
+    - name: Get Rabbitmq consumed messages from queue 
+      run: | 
+        sleep 10s 
+        i=0; while [[ $i -lt 10 ]]; do i=`expr $i + 1` && kubectl logs -n rabbits deployment.apps/rabbitmq-consumer; sleep 5s; done 
+# job for sqs connector
+  sqs: 
+  needs: check 
+  if: contains(needs.check.outputs.packages, 'sqschanges') 
+  runs-on: ubuntu-latest 
+  steps: 
+    - name: Checkout the current repo 
+      uses: actions/checkout@v1 
+    - name: Create kind cluster 
+      uses: helm/kind-action@v1.1.0 
+    - name: install keda and fission 
+      run: | 
+        chmod +x test/install.sh test/install.sh 
+    - name: Create Docker Image for SQS KEDA Connector 
+      run: | 
+        cd aws-sqs-http-connector 
+        docker build -t localhost:5000/aws-sqs-connector:latest . 
+        docker push localhost:5000/aws-sqs-connector:latest 
+    - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
+      run: | 
+        cd aws-sqs-http-connector/test/kubernetes 
+        docker build -t localhost:5000/aws-sqs-test-connector:latest . 
+        docker push localhost:5000/aws-sqs-test-connector:latest 
+        kubectl apply -f localstack.yaml 
+    - name: Build SQS test queue 
+      run: | 
+        cd aws-sqs-http-connector/test/validate 
+        docker build -t localhost:5000/test-queue:latest . 
+        docker push localhost:5000/test-queue:latest 
+        kubectl apply -f test.yaml 
+    - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
+      run: | 
+        cd aws-sqs-http-connector/test/kubernetes 
+        fission mqt create --name sqstest --function helloworld --mqtype aws-sqs-queue \ 
+        --topic my_queue --resptopic responseTopic --mqtkind keda --errortopic errorTopic \ 
+        --maxretries 3 --metadata queueURL=http://localstack:31000/queue/my_queue \ 
+        --metadata identityOwner=operator --metadata awsRegion=us-east-1 --cooldownperiod=30 \ 
+        --pollinginterval=5 kubectl get ScaledObject i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; sleep 5s; done 
+      - name: Get SQS consumed messages from queue 
+        run: | 
+          i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; kubectl logs -l app=queue --all-containers=true; sleep 5s; done 
