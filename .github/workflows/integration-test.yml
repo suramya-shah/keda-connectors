@@ -64,7 +64,7 @@ jobs:
         run: | 
           sleep 2 
           kubectl get pods 
-          kubectl wait pod -l app=natstest condition=ready --timeout=30s 
+          kubectl wait pod -l app=natstest --for condition=ready --timeout=30s 
           kubectl logs -l app=natstest
 # job for kafka connector
   kafka: 
