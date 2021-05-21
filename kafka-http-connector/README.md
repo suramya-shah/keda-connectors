@@ -22,3 +22,5 @@ The job of the connector is to read messages from the topic, call an HTTP endpoi
 - `KEY`: Key for client authentication. Optional. If authmode is sasl_ssl, this is required.
 
 More information about the above parameters and how to define it scaledobject refer [Apache Kafka scaler doc](https://keda.sh/docs/1.5/scalers/apache-kafka/).
+
+
