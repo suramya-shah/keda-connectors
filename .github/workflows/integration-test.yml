@@ -163,7 +163,7 @@ jobs:
           cd rabbitmq-http-connector/test/consumer/ 
           kubectl apply -f consumer-deployment.yaml 
       - name: Run fission for rabbitmq connector 
-        run: | 
+        run: >
           fission mqt create --name rabbitmqtest --function helloworld --mqtype rabbitmq \ 
           --topic request --resptopic response --mqtkind keda --errortopic error --maxretries 3 \
           --metadata queueName=request --cooldownperiod=30 --pollinginterval=5 \ 
@@ -203,13 +203,14 @@ jobs:
           docker push localhost:5000/test-queue:latest 
           kubectl apply -f test.yaml 
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
-        run: | 
-          cd aws-sqs-http-connector/test/kubernetes 
+        run: >
+          cd aws-sqs-http-connector/test/kubernetes \
           fission mqt create --name sqstest --function helloworld --mqtype aws-sqs-queue \ 
           --topic my_queue --resptopic responseTopic --mqtkind keda --errortopic errorTopic \ 
           --maxretries 3 --metadata queueURL=http://localstack:31000/queue/my_queue \ 
           --metadata identityOwner=operator --metadata awsRegion=us-east-1 --cooldownperiod=30 \ 
           --pollinginterval=5 
+          
           kubectl get ScaledObject 
           i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; sleep 5s; done 
       - name: Get SQS consumed messages from queue 
