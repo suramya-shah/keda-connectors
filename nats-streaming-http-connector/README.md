@@ -22,4 +22,4 @@ The job of the connector is to read messages from the subject, call an HTTP endp
 * For running the connecter with fission e.g.  
  ```fission mqt create --name natstest --function helloworld --mqtype stan --topic hello --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello --metadata queueGroup=grp1 --metadata durableName=due --metadata natsServerMonitoringEndpoint=nats.default.svc.cluster.local:8222 --metadata clusterId=test-cluster --metadata natsServer=nats://nats:4222```
 
- test
+ test1
