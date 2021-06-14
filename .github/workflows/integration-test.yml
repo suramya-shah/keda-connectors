@@ -48,7 +48,7 @@ jobs:
       - name: Create Nats Streaming server 
         run: | 
           cd nats-streaming-http-connector/test/nats-streaming-server
-          kubectl create -f nats-dep.yaml --image localhost:5000/nats-steaming:latest
+          kubectl create -f nats-dep.yaml 
 
       - name: Publish messages to nats server 
         run: |
