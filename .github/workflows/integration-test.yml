@@ -40,6 +40,7 @@ jobs:
         run: |
           chmod +x test/install.sh 
           test/install.sh 
+          fission env create --name goenv --image fission/go-env --builder fission/go-builder
       - name: Create Docker Image for Nats Streaming KEDA Connector 
         run: | 
           cd nats-streaming-http-connector/ 
@@ -59,6 +60,7 @@ jobs:
           kubectl wait pod -l app=nats-pub --for=condition=ready --timeout=30s 
       - name: Run fission for nats connector 
         run: | 
+          
           fission mqt create --name natstest --function helloworld --mqtype nats-streaming --topic hello  --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello  --metadata queueGroup=grp1 --metadata durableName=due  --metadata natsServerMonitoringEndpoint=nats.default.svc.cluster.local:8222  --metadata clusterId=test-cluster --metadata clientId=stan-sub  --metadata natsServer=nats://nats:4222 
       - name: Validate and test nats connector
         run: | 
