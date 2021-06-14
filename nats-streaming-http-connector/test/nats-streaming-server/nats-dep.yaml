@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: nats
-        image: localhost:5000/nats-steaming:latest
+        image: nats-steaming:latest
         args: ["-m", "8222"]
 ---
 apiVersion: v1
