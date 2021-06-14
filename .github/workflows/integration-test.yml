@@ -48,7 +48,7 @@ jobs:
       - name: Create Nats Streaming server 
         run: | 
           cd nats-streaming-http-connector/test/nats-streaming-server
-          kubectl apply -f nats-dep.yaml
+          kubectl create -f nats-dep.yaml --image localhost:5000/nats-steaming:latest
 
       - name: Publish messages to nats server 
         run: |
@@ -64,9 +64,9 @@ jobs:
         run: | 
           sleep 2 
           kubectl get pods 
-          kubectl describe po -l app=natstest
-          kubectl wait pod -l app=natstest --for condition=ready --timeout=30s 
-          kubectl logs -l app=natstest
+        #  kubectl describe po -l app=natstest
+        #  kubectl wait pod -l app=natstest --for condition=ready --timeout=30s 
+        #  kubectl logs -l app=natstest
 # job for kafka connector
   kafka: 
     needs: check 
