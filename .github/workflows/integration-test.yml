@@ -65,10 +65,11 @@ jobs:
           fission mqt create --name natstest --function helloworld --mqtype nats-streaming --topic hello  --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello  --metadata queueGroup=grp1 --metadata durableName=due  --metadata natsServerMonitoringEndpoint=nats.default.svc.cluster.local:8222  --metadata clusterId=test-cluster --metadata clientId=stan-sub  --metadata natsServer=nats://nats:4222 
       - name: Validate and test nats connector
         run: | 
-          sleep 2 
+          sleep 120
           kubectl get pods 
           fission fn test --name natstest
           kubectl get po 
+          kubectl describe po -l app=nats-pub | grep -i image
         #  kubectl describe po -l app=natstest
         #  kubectl wait pod -l app=natstest --for condition=ready --timeout=30s 
         #  kubectl logs -l app=natstest
