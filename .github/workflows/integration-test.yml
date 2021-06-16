@@ -89,7 +89,7 @@ jobs:
         run: |
           chmod +x test/install.sh 
           test/install.sh 
-      #    fission env create --name goenv --image fission/go-env --builder fission/go-builder
+          fission env create --name goenv --image fission/go-env --builder fission/go-builder
       - name: Create Docker Image for Nats Streaming KEDA Connector 
         run: | 
           cd nats-streaming-http-connector/ 
