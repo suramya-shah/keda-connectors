@@ -42,7 +42,7 @@ jobs:
           chmod +x test/install.sh test/install.sh 
       - name: Create Docker Image for SQS KEDA Connector 
         run: | 
-          sudo systemctl start docker
+          docker-machine ip
           cat /etc/hosts
           echo "*******************************************"
       
