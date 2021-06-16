@@ -42,22 +42,22 @@ jobs:
           chmod +x test/install.sh test/install.sh 
       - name: Create Docker Image for SQS KEDA Connector 
         run: | 
-          docker-machine ip
-          cat /etc/hosts
-          echo "*******************************************"
-      
-           sed  -e '/::1/ s/^#*/#/'  /etc/hosts
            cat /etc/hosts
+           echo "*******************************************"
+           
+           docker build -t 127.0.1.1:5000/aws-sqs-connector:latest . 
+           docker push 127.0.1.1:5000/aws-sqs-connector:latest
+       # sed  -e '/::1/ s/^#*/#/'  /etc/hosts
+      # cat /etc/hosts
  #   sed  '/\[ registry.me\]/a 127.0.0.1 localhost' /etc/hosts          
 #     cd aws-sqs-http-connector   
-#  docker build -t registry.me:5000/aws-sqs-connector:latest . 
-#  docker push registry.me:5000/aws-sqs-connector:latest 
-      - name: Build and Push the docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: aws-sqs-http-connector
-          tags: 127.0.0.1:6000/aws-sqs-connector:latest
-          push: true          
+           
+     # - name: Build and Push the docker image
+    #    uses: docker/build-push-action@v2
+   #     with:
+  #        context: aws-sqs-http-connector
+ #         tags: 127.0.0.1:6000/aws-sqs-connector:latest
+#          push: true          
       - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
         run: | 
           cd aws-sqs-http-connector/test/kubernetes 
