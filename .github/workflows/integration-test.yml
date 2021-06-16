@@ -44,8 +44,6 @@ jobs:
       - name: Create Docker Image for SQS KEDA Connector 
         run: | 
            cd aws-sqs-http-connector
-           
-          
            docker build -t localhost:5000/aws-sqs-connector:latest . 
            docker push localhost:5000/aws-sqs-connector:latest
 
@@ -69,9 +67,8 @@ jobs:
             --maxretries 3 --metadata queueURL=http://localstack:31000/queue/my_queue \
             --metadata identityOwner=operator --metadata awsRegion=us-east-1 --cooldownperiod=30 --pollinginterval=5 
             
-          
-        #  kubectl get ScaledObject 
-         # i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; sleep 5s; done 
+          kubectl get ScaledObject 
+          i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; sleep 5s; done 
       - name: Get SQS consumed messages from queue 
         run: | 
           i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; kubectl logs -l app=queue --all-containers=true; sleep 5s; done 
@@ -234,4 +231,3 @@ jobs:
         run: | 
           sleep 10s 
           i=0; while [[ $i -lt 10 ]]; do i=`expr $i + 1` && kubectl logs -n rabbits deployment.apps/rabbitmq-consumer; sleep 5s; done 
-
