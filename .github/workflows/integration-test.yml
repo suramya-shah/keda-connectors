@@ -66,8 +66,7 @@ jobs:
             --topic my_queue --resptopic responseTopic --mqtkind keda --errortopic errorTopic \
             --maxretries 3 --metadata queueURL=http://localstack:31000/queue/my_queue \
             --metadata identityOwner=operator --metadata awsRegion=us-east-1 --cooldownperiod=30 --pollinginterval=5 
-            
- 
+             
           i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; sleep 5s; done 
       # kubectl get ScaledObject    
       - name: Get SQS consumed messages from queue 
@@ -116,9 +115,12 @@ jobs:
         run: | 
           sleep 120
           kubectl get pods 
+          kubectl describe po -l app=nats-pub | grep -i error
+          kubectl describe po -l app=nats | grep -i error
+
           fission fn test --name natstest
           kubectl get po 
-          kubectl describe po -l app=nats-pub | grep -i image
+        
         #  kubectl describe po -l app=natstest
         #  kubectl wait pod -l app=natstest --for condition=ready --timeout=30s 
         #  kubectl logs -l app=natstest
