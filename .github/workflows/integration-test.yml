@@ -207,6 +207,8 @@ jobs:
           cat /etc/hosts
           sed  '/\[ registry.me\]/a 127.0.0.1 localhost' /etc/hosts
           sed  '/::1/ s/^#*/#/'  /etc/hosts
+          docker-machine restart default      
+          eval $(docker-machine env default)  
 #     cd aws-sqs-http-connector   
 #  docker build -t registry.me:5000/aws-sqs-connector:latest . 
 #  docker push registry.me:5000/aws-sqs-connector:latest 
