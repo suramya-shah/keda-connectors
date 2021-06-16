@@ -1,5 +1,6 @@
 # AWS SQS KEDA Connector
 
+
 AWS SQS KEDA connector image can be used in the Kubernetes deployment as scaleTargetRef in scaledObject of [AWS SQS scaler](https://keda.sh/docs/1.5/scalers/aws-sqs/).
 
 The job of the connector is to read messages from the queue, call an HTTP endpoint with the body of the message, and write response or error in the respective queues. Following enviornment variables are used by connector image as configuration to connect and authenticate with AWS SQS cluster which should be defined in the Kubernetes deployment manifest.
