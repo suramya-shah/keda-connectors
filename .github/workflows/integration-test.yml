@@ -45,10 +45,10 @@ jobs:
         run: | 
            cd aws-sqs-http-connector
            
-          # docker run -d -p 5000:5000 --restart=always --name registry registry:2
+          
            docker build -t localhost:5000/aws-sqs-connector:latest . 
            docker push localhost:5000/aws-sqs-connector:latest
-       
+       # docker run -d -p 5000:5000 --restart=always --name registry registry:2
       - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
         run: | 
           cd aws-sqs-http-connector/test/kubernetes 
