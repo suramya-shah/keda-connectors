@@ -46,19 +46,9 @@ jobs:
            cat /etc/hosts
            echo "*******************************************"
            docker run -d -p 5000:5000 --restart=always --name registry registry:2
-           docker build -t 127.0.0.1:5000/aws-sqs-connector:latest . 
-           docker push 127.0.0.1:5000/aws-sqs-connector:latest
-       # sed  -e '/::1/ s/^#*/#/'  /etc/hosts
-      # cat /etc/hosts
- #   sed  '/\[ registry.me\]/a 127.0.0.1 localhost' /etc/hosts          
-#    
-           
-     # - name: Build and Push the docker image
-    #    uses: docker/build-push-action@v2
-   #     with:
-  #        context: aws-sqs-http-connector
- #         tags: 127.0.0.1:6000/aws-sqs-connector:latest
-#          push: true          
+           docker build -t localhost:5000/aws-sqs-connector:latest . 
+           docker push localhost:5000/aws-sqs-connector:latest
+       
       - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
         run: | 
           cd aws-sqs-http-connector/test/kubernetes 
@@ -113,6 +103,7 @@ jobs:
       - name: Publish messages to nats server 
         run: |
           cd nats-streaming-http-connector/test/producer 
+          docker run -d -p 5000:5000 --restart=always --name registry registry:2
           docker build -t localhost:5000/producer:latest . 
           docker push localhost:5000/producer:latest 
           kubectl run nats-pub -l app=nats-pub --image=localhost:5000/producer:latest
@@ -148,6 +139,7 @@ jobs:
       - name: Create Docker Image for Kafka KEDA Connector 
         run: | 
           cd kafka-http-connector/ 
+          docker run -d -p 5000:5000 --restart=always --name registry registry:2
           docker build -t localhost:5000/kafka-connector:latest . 
           docker push localhost:5000/kafka-connector:latest 
       - name: Deploy Kafka cluster 
@@ -203,6 +195,7 @@ jobs:
       - name: Create Rabbitmq Docker Image for Publisher 
         run: | 
           cd rabbitmq-http-connector/test/publisher/ 
+          docker run -d -p 5000:5000 --restart=always --name registry registry:2
           docker build -t localhost:5000/rabbit-publisher:latest . 
           docker push localhost:5000/rabbit-publisher:latest 
       - name: Create Rabbitmq Docker Image for Consumer 
