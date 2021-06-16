@@ -56,7 +56,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: aws-sqs-http-connector
-          tags: localhost:6000/aws-sqs-connector:latest
+          tags: 127.0.0.1:6000/aws-sqs-connector:latest
           push: true          
       - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
         run: | 
