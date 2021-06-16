@@ -44,7 +44,7 @@ jobs:
         run: | 
            cat /etc/hosts
            echo "*******************************************"
-           
+           docker run -d -p 5000:5000 --restart=always --name registry registry:2
            docker build -t 127.0.0.1:5000/aws-sqs-connector:latest . 
            docker push 127.0.0.1:5000/aws-sqs-connector:latest
        # sed  -e '/::1/ s/^#*/#/'  /etc/hosts
