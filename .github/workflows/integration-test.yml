@@ -184,6 +184,15 @@ jobs:
     needs: check 
     if: contains(needs.check.outputs.packages, 'sqschanges') 
     runs-on: ubuntu-latest 
+    services:
+      # Label used to access the service container
+      docker:
+        # Docker Hub image
+        image: docker:latest
+        #
+        ports:
+          # Opens tcp port 6379 on the host and service container
+          - 6000:6000    
     steps: 
       - name: Checkout the current repo 
         uses: actions/checkout@v1 
