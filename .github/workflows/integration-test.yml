@@ -27,6 +27,72 @@ jobs:
           natschanges: 
             - 'nats-streaming-http-connector/**'
 # job for nats streaming http connector
+
+  sqs: 
+    needs: check 
+    if: contains(needs.check.outputs.packages, 'sqschanges') 
+    runs-on: ubuntu-latest 
+    services:
+      # Label used to access the service container
+      docker:
+        # Docker Hub image
+        image: docker:latest
+        #
+        ports:
+          # Opens tcp port 6379 on the host and service container
+          - 6000:6000    
+    steps: 
+      - name: Checkout the current repo 
+        uses: actions/checkout@v1 
+      - name: Create kind cluster 
+        uses: helm/kind-action@v1.1.0 
+      - name: install keda and fission 
+        run: | 
+          chmod +x test/install.sh test/install.sh 
+      - name: Create Docker Image for SQS KEDA Connector 
+        run: | 
+          sudo systemctl start docker
+          cat /etc/hosts
+       #   sed  '/\[ registry.me\]/a 127.0.0.1 localhost' /etc/hosts
+        #  sed  '/::1/ s/^#*/#/'  /etc/hosts
+          
+      
+#     cd aws-sqs-http-connector   
+#  docker build -t registry.me:5000/aws-sqs-connector:latest . 
+#  docker push registry.me:5000/aws-sqs-connector:latest 
+      - name: Build and Push the docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: aws-sqs-http-connector
+          tags: localhost:6000/aws-sqs-connector:latest
+          push: true          
+      - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
+        run: | 
+          cd aws-sqs-http-connector/test/kubernetes 
+          docker build -t localhost:5000/aws-sqs-test-connector:latest . 
+          docker push localhost:5000/aws-sqs-test-connector:latest 
+          kubectl apply -f localstack.yaml 
+      - name: Build SQS test queue 
+        run: | 
+          cd aws-sqs-http-connector/test/validate 
+          docker build -t localhost:5000/test-queue:latest . 
+          docker push localhost:5000/test-queue:latest 
+          kubectl apply -f test.yaml 
+      - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
+        run: >
+          cd aws-sqs-http-connector/test/kubernetes \
+          fission mqt create --name sqstest --function helloworld --mqtype aws-sqs-queue \ 
+          --topic my_queue --resptopic responseTopic --mqtkind keda --errortopic errorTopic \ 
+          --maxretries 3 --metadata queueURL=http://localstack:31000/queue/my_queue \ 
+          --metadata identityOwner=operator --metadata awsRegion=us-east-1 --cooldownperiod=30 \ 
+          --pollinginterval=5 
+          
+          kubectl get ScaledObject 
+          i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; sleep 5s; done 
+      - name: Get SQS consumed messages from queue 
+        run: | 
+          i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; kubectl logs -l app=queue --all-containers=true; sleep 5s; done 
+
   nats: 
     needs: check 
     if: contains(needs.check.outputs.packages, 'natschanges') 
@@ -180,67 +246,3 @@ jobs:
           sleep 10s 
           i=0; while [[ $i -lt 10 ]]; do i=`expr $i + 1` && kubectl logs -n rabbits deployment.apps/rabbitmq-consumer; sleep 5s; done 
 # job for sqs connector
-  sqs: 
-    needs: check 
-    if: contains(needs.check.outputs.packages, 'sqschanges') 
-    runs-on: ubuntu-latest 
-    services:
-      # Label used to access the service container
-      docker:
-        # Docker Hub image
-        image: docker:latest
-        #
-        ports:
-          # Opens tcp port 6379 on the host and service container
-          - 6000:6000    
-    steps: 
-      - name: Checkout the current repo 
-        uses: actions/checkout@v1 
-      - name: Create kind cluster 
-        uses: helm/kind-action@v1.1.0 
-      - name: install keda and fission 
-        run: | 
-          chmod +x test/install.sh test/install.sh 
-      - name: Create Docker Image for SQS KEDA Connector 
-        run: | 
-          sudo systemctl start docker
-          cat /etc/hosts
-       #   sed  '/\[ registry.me\]/a 127.0.0.1 localhost' /etc/hosts
-        #  sed  '/::1/ s/^#*/#/'  /etc/hosts
-          
-      
-#     cd aws-sqs-http-connector   
-#  docker build -t registry.me:5000/aws-sqs-connector:latest . 
-#  docker push registry.me:5000/aws-sqs-connector:latest 
-      - name: Build and Push the docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: aws-sqs-http-connector
-          tags: localhost:6000/aws-sqs-connector:latest
-          push: true          
-      - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
-        run: | 
-          cd aws-sqs-http-connector/test/kubernetes 
-          docker build -t localhost:5000/aws-sqs-test-connector:latest . 
-          docker push localhost:5000/aws-sqs-test-connector:latest 
-          kubectl apply -f localstack.yaml 
-      - name: Build SQS test queue 
-        run: | 
-          cd aws-sqs-http-connector/test/validate 
-          docker build -t localhost:5000/test-queue:latest . 
-          docker push localhost:5000/test-queue:latest 
-          kubectl apply -f test.yaml 
-      - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
-        run: >
-          cd aws-sqs-http-connector/test/kubernetes \
-          fission mqt create --name sqstest --function helloworld --mqtype aws-sqs-queue \ 
-          --topic my_queue --resptopic responseTopic --mqtkind keda --errortopic errorTopic \ 
-          --maxretries 3 --metadata queueURL=http://localstack:31000/queue/my_queue \ 
-          --metadata identityOwner=operator --metadata awsRegion=us-east-1 --cooldownperiod=30 \ 
-          --pollinginterval=5 
-          
-          kubectl get ScaledObject 
-          i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; sleep 5s; done 
-      - name: Get SQS consumed messages from queue 
-        run: | 
-          i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; kubectl logs -l app=queue --all-containers=true; sleep 5s; done 
