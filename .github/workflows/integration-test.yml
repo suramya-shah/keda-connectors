@@ -62,7 +62,7 @@ jobs:
           docker push localhost:5000/test-queue:latest 
           kubectl apply -f test.yaml 
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
-        run: >
+        run: |
           cd aws-sqs-http-connector/test/kubernetes 
           fission mqt create --name sqstest --function helloworld --mqtype aws-sqs-queue  \
             --topic my_queue --resptopic responseTopic --mqtkind keda --errortopic errorTopic \
