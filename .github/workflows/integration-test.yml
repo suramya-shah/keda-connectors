@@ -203,12 +203,13 @@ jobs:
           chmod +x test/install.sh test/install.sh 
       - name: Create Docker Image for SQS KEDA Connector 
         run: | 
-     #     cd aws-sqs-http-connector 
+     
           cat /etc/hosts
           sed  '/\[ registry.me\]/a 127.0.0.1 localhost' /etc/hosts
           sed  '/::1/ s/^#*/#/'  /etc/hosts
-        #  docker build -t registry.me:5000/aws-sqs-connector:latest . 
-        #  docker push registry.me:5000/aws-sqs-connector:latest 
+#     cd aws-sqs-http-connector   
+#  docker build -t registry.me:5000/aws-sqs-connector:latest . 
+#  docker push registry.me:5000/aws-sqs-connector:latest 
       - name: Build and Push the docker image
         uses: docker/build-push-action@v2
         with:
