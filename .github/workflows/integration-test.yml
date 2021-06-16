@@ -63,10 +63,10 @@ jobs:
           kubectl apply -f test.yaml 
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
         run: >
-          cd aws-sqs-http-connector/test/kubernetes \
-          fission mqt create --name sqstest --function helloworld --mqtype aws-sqs-queue \ 
-            --topic my_queue --resptopic responseTopic --mqtkind keda --errortopic errorTopic \ 
-            --maxretries 3 --metadata queueURL=http://localstack:31000/queue/my_queue \ 
+          cd aws-sqs-http-connector/test/kubernetes 
+          fission mqt create --name sqstest --function helloworld --mqtype aws-sqs-queue  \
+            --topic my_queue --resptopic responseTopic --mqtkind keda --errortopic errorTopic \
+            --maxretries 3 --metadata queueURL=http://localstack:31000/queue/my_queue \
             --metadata identityOwner=operator --metadata awsRegion=us-east-1 --cooldownperiod=30 \ 
             --pollinginterval=5 
           
