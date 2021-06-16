@@ -102,6 +102,8 @@ jobs:
           kubectl get po 
       - name: Publish messages to nats server 
         run: |
+          go version
+          echo "****************************"
           cd nats-streaming-http-connector/test/producer 
           docker build -t localhost:5000/producer:latest . 
           docker push localhost:5000/producer:latest 
