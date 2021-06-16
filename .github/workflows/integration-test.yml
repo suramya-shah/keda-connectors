@@ -31,16 +31,7 @@ jobs:
   sqs: 
     needs: check 
     if: contains(needs.check.outputs.packages, 'sqschanges') 
-    runs-on: ubuntu-latest 
-    services:
-      # Label used to access the service container
-      docker:
-        # Docker Hub image
-        image: docker:latest
-        #
-        ports:
-          # Opens tcp port 6379 on the host and service container
-          - 6000:6000    
+    runs-on: ubuntu-latest   
     steps: 
       - name: Checkout the current repo 
         uses: actions/checkout@v1 
@@ -53,10 +44,10 @@ jobs:
         run: | 
           sudo systemctl start docker
           cat /etc/hosts
-       #   sed  '/\[ registry.me\]/a 127.0.0.1 localhost' /etc/hosts
-        #  sed  '/::1/ s/^#*/#/'  /etc/hosts
-          
       
+           sed  '/::1/ s/^#*/#/'  /etc/hosts
+           cat /etc/hosts
+ #   sed  '/\[ registry.me\]/a 127.0.0.1 localhost' /etc/hosts          
 #     cd aws-sqs-http-connector   
 #  docker build -t registry.me:5000/aws-sqs-connector:latest . 
 #  docker push registry.me:5000/aws-sqs-connector:latest 
