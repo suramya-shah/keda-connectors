@@ -205,8 +205,8 @@ jobs:
         run: | 
           sudo systemctl start docker
           cat /etc/hosts
-          sed  '/\[ registry.me\]/a 127.0.0.1 localhost' /etc/hosts
-          sed  '/::1/ s/^#*/#/'  /etc/hosts
+       #   sed  '/\[ registry.me\]/a 127.0.0.1 localhost' /etc/hosts
+        #  sed  '/::1/ s/^#*/#/'  /etc/hosts
           
       
 #     cd aws-sqs-http-connector   
@@ -216,7 +216,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: aws-sqs-http-connector
-          tags: registry.me:6000/aws-sqs-connector:latest
+          tags: localhost:6000/aws-sqs-connector:latest
           push: true          
       - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
         run: | 
