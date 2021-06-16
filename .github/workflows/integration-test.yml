@@ -44,8 +44,9 @@ jobs:
         run: | 
           sudo systemctl start docker
           cat /etc/hosts
+          echo "*******************************************"
       
-           sed  '/::1/ s/^#*/#/'  /etc/hosts
+           sed  -e '/::1/ s/^#*/#/'  /etc/hosts
            cat /etc/hosts
  #   sed  '/\[ registry.me\]/a 127.0.0.1 localhost' /etc/hosts          
 #     cd aws-sqs-http-connector   
