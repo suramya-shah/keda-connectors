@@ -39,7 +39,8 @@ jobs:
         uses: helm/kind-action@v1.1.0 
       - name: install keda and fission 
         run: | 
-          chmod +x test/install.sh test/install.sh 
+          chmod +x test/install.sh 
+          test/install.sh 
       - name: Create Docker Image for SQS KEDA Connector 
         run: | 
            cd aws-sqs-http-connector   
