@@ -48,7 +48,7 @@ jobs:
           
            docker build -t localhost:5000/aws-sqs-connector:latest . 
            docker push localhost:5000/aws-sqs-connector:latest
-       # docker run -d -p 5000:5000 --restart=always --name registry registry:2
+
       - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
         run: | 
           cd aws-sqs-http-connector/test/kubernetes 
@@ -234,4 +234,4 @@ jobs:
         run: | 
           sleep 10s 
           i=0; while [[ $i -lt 10 ]]; do i=`expr $i + 1` && kubectl logs -n rabbits deployment.apps/rabbitmq-consumer; sleep 5s; done 
-# job for sqs connector
+
