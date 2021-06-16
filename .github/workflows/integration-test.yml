@@ -43,9 +43,8 @@ jobs:
           test/install.sh 
       - name: Create Docker Image for SQS KEDA Connector 
         run: | 
-           cd aws-sqs-http-connector   
-           cat /etc/hosts
-           echo "*******************************************"
+           cd aws-sqs-http-connector
+           docker rm registry   
            docker run -d -p 5000:5000 --restart=always --name registry registry:2
            docker build -t localhost:5000/aws-sqs-connector:latest . 
            docker push localhost:5000/aws-sqs-connector:latest
