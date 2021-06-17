@@ -161,7 +161,7 @@ jobs:
           kubectl apply -f kafka-err-topic.yaml 
           kubectl apply -f kafka-res-topic.yaml 
       - name: Run fission for kafka connector 
-        run: <
+        run: >
           fission mqt create --name kafkatest --function helloworld --mqtype kafka 
           --mqtkind keda --topic request-topic --resptopic response-topic 
           --errortopic error-topic --maxretries 3 
