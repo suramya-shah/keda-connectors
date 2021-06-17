@@ -115,8 +115,8 @@ jobs:
         run: | 
           sleep 120
           kubectl get pods 
-          kubectl describe po -l app=nats-pub | grep -i error
-          kubectl describe po -l app=nats | grep -i error
+          kubectl logs -l app=nats-pub 
+          kubectl logs -l app=nats 
 
           fission fn test --name natstest
           kubectl get po 
