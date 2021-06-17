@@ -161,12 +161,12 @@ jobs:
           kubectl apply -f kafka-err-topic.yaml 
           kubectl apply -f kafka-res-topic.yaml 
       - name: Run fission for kafka connector 
-        run: | 
-          fission mqt create --name kafkatest --function helloworld --mqtype kafka \
-          --mqtkind keda --topic request-topic --resptopic response-topic \ 
-          --errortopic error-topic --maxretries 3 \ 
-          --metadata bootstrapServers=my-cluster-test-kafka-bootstrap.kafka.svc:9092 \ 
-          --metadata consumerGroup=bridge-quickstart-consumer-group --metadata topic=request-topic \ 
+        run: <
+          fission mqt create --name kafkatest --function helloworld --mqtype kafka 
+          --mqtkind keda --topic request-topic --resptopic response-topic 
+          --errortopic error-topic --maxretries 3 
+          --metadata bootstrapServers=my-cluster-test-kafka-bootstrap.kafka.svc:9092 
+          --metadata consumerGroup=bridge-quickstart-consumer-group --metadata topic=request-topic 
           --cooldownperiod=30 --pollinginterval=5 
       - name: Produce Kafka messages Using Producer 
         run: | 
