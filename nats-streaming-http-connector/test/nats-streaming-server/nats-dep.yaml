@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nats-streaming-deployment
+  name: nats-streaming-server
   labels:
     app: nats
 spec:
