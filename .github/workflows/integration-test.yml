@@ -110,6 +110,7 @@ jobs:
         run: | 
           kubectl get po 
           fission mqt create --name natstest --function helloworld --mqtype nats-streaming --topic hello  --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello  --metadata queueGroup=grp1 --metadata durableName=due  --metadata natsServerMonitoringEndpoint=nats-streaming-server.default.svc.cluster.local:8222  --metadata clusterId=test-cluster --metadata clientId=stan-sub  --metadata natsServer=nats://nats-streaming-server.default.svc.cluster.local:4222
+          sleep 60
           kubectl get pods 
           kubectl logs -l app=nats-pub 
           kubectl logs -l app=nats 
