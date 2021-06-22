@@ -62,13 +62,14 @@ jobs:
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
         run: |
           cd aws-sqs-http-connector/test/kubernetes 
+          
           fission mqt create --name sqstest --function helloworld --mqtype aws-sqs-queue  \
             --topic my_queue --resptopic responseTopic --mqtkind keda --errortopic errorTopic \
             --maxretries 3 --metadata queueURL=http://localstack:31000/queue/my_queue \
             --metadata identityOwner=operator --metadata awsRegion=us-east-1 --cooldownperiod=30 --pollinginterval=5 
              
           i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; sleep 5s; done 
-          kubectl get ScaledObject    
+   
       - name: Get SQS consumed messages from queue 
         run: | 
           kubectl describe deploy | grep -i image
@@ -112,7 +113,7 @@ jobs:
         run: | 
           kubectl get po 
           fission mqt create --name natstest --function helloworld --mqtype nats-streaming --topic hello  --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello  --metadata queueGroup=grp1 --metadata durableName=due  --metadata natsServerMonitoringEndpoint=nats-streaming-server.default.svc.cluster.local:8222  --metadata clusterId=test-cluster --metadata clientId=stan-sub  --metadata natsServer=nats://nats-streaming-server.default.svc.cluster.local:4222
-          kubectl get ScaledObject 
+
           sleep 60
           kubectl get pods 
           kubectl logs -l app=nats-pub 
@@ -121,20 +122,11 @@ jobs:
           
       - name: Validate and test nats connector
         run: | 
-          sleep 120
-          
+          sleep 120    
           kubectl get pods 
           kubectl logs -l app=nats-pub 
-          kubectl logs -l app=nats 
-          
+          kubectl logs -l app=nats           
           kubectl get po    
-        # 
-        #  kubectl describe po -l app=natstest
-        #  kubectl wait pod -l app=natstest --for condition=ready --timeout=30s 
-        #  kubectl logs -l app=natstest
-
-
-
   nats2: 
     needs: check 
     if: contains(needs.check.outputs.packages, 'natschanges') 
@@ -178,7 +170,7 @@ jobs:
       - name: Run fission for nats connector 
         run: | 
            fission mqt create --name natstest --function helloworld --mqtype nats-streaming --topic hello  --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello  --metadata queueGroup=grp1 --metadata durableName=due  --metadata natsServerMonitoringEndpoint=nats-streaming-server.default.svc.cluster.local:8222  --metadata clusterId=test-cluster --metadata clientId=stan-sub  --metadata natsServer=nats://nats-streaming-server.default.svc.cluster.local:4222
-           kubectl get ScaledObject 
+
            kubectl get po 
         #fission mqt create  --name natstest --function helloworld --mqtype stan --topic request --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=request --metadata queueGroup=grp1 --metadata durableName=due --metadata natsServerMonitoringEndpoint=nats-monitor.default.svc.cluster.local:8222 --metadata clusterId=test-cluster --metadata clientId=stan-sub --metadata natsServer=nats://nats-monitor:4222
           
@@ -192,7 +184,7 @@ jobs:
           kubectl describe deploy
           echo "***************describe po ***************"
           kubectl describe po 
-          fission fn test --name producerfunc
+          fission fn test --name helloworld
           kubectl get pods            
           
 # job for kafka connector
