@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: nats
-        image: image: nats-streaming:0.17.0
+        image: nats-streaming:latest
         args: ["-m", "8222"]
 ---
 apiVersion: v1
