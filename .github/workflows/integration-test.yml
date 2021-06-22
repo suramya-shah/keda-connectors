@@ -278,11 +278,12 @@ jobs:
           cd rabbitmq-http-connector/test/consumer/ 
           kubectl apply -f consumer-deployment.yaml 
       - name: Run fission for rabbitmq connector 
-        run: >
-          fission mqt create --name rabbitmqtest --function helloworld --mqtype rabbitmq
-          --topic request --resptopic response --mqtkind keda --errortopic error --maxretries 3 
-          --metadata queueName=request --cooldownperiod=30 --pollinginterval=5 
-          --secret rabbitmq-consumer kubectl wait pod -l app=rabbitmqtest --for=condition=ready --timeout=-1s 
+        run: |
+          fission mqt create --name rabbitmqtest --function helloworld --mqtype rabbitmq \
+          --topic request --resptopic response --mqtkind keda --errortopic error --maxretries 3 \
+          --metadata queueName=request --cooldownperiod=30 --pollinginterval=5 \
+          --secret rabbitmq-consumer
+          kubectl wait pod -l app=rabbitmqtest --for=condition=ready --timeout=-1s 
       - name: Get Rabbitmq consumed messages from queue 
         run: | 
           sleep 10s 
