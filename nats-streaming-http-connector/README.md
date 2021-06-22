@@ -1,5 +1,6 @@
 # NATS Streaming KEDA Connector
 
+
 NATs streaming KEDA connector image can be used in the Kubernetes deployment as scaleTargetRef in scaledObject of [NATs scaler](https://keda.sh/docs/2.2/scalers/nats-streaming/).
 
 The job of the connector is to read messages from the subject, call an HTTP endpoint with the body of the message, and write response or error in the respective subject. Following enviornment variables are used by connector image as configuration to connect and authenticate with NATs server which should be defined in the Kubernetes deployment manifest.
