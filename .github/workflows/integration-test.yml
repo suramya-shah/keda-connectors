@@ -71,6 +71,7 @@ jobs:
       # kubectl get ScaledObject    
       - name: Get SQS consumed messages from queue 
         run: | 
+          kubectl describe deploy | grep -i image
           i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; kubectl logs -l app=queue --all-containers=true; sleep 5s; done 
   nats: 
     needs: check 
@@ -114,6 +115,7 @@ jobs:
           kubectl get pods 
           kubectl logs -l app=nats-pub 
           kubectl logs -l app=nats 
+          kubectl describe deploy | grep -i image
           
       - name: Validate and test nats connector
         run: | 
@@ -180,6 +182,7 @@ jobs:
         run: | 
           sleep 2
           kubectl get po
+          kubectl describe deploy | grep -i image
           fission fn test --name producerfunc
           kubectl get pods            
           
@@ -235,6 +238,7 @@ jobs:
           kubectl wait -f kafka-produer.yaml --for=condition=complete --timeout=-1s 
           kubectl delete job pi kubectl logs -l app=kafkatest --all-containers=true
           kubectl get po 
+          kubectl describe deploy | grep -i image
 
   rabbitmq: 
     needs: check 
@@ -293,4 +297,5 @@ jobs:
       - name: Get Rabbitmq consumed messages from queue 
         run: | 
           sleep 20s 
+          kubectl describe deploy | grep -i image
           i=0; while [[ $i -lt 10 ]]; do i=`expr $i + 1` && kubectl logs -n rabbits deployment.apps/rabbitmq-consumer;kubectl get po -n rabbits; sleep 5s; done 
