@@ -128,6 +128,57 @@ jobs:
         #  kubectl describe po -l app=natstest
         #  kubectl wait pod -l app=natstest --for condition=ready --timeout=30s 
         #  kubectl logs -l app=natstest
+
+
+
+  nats2: 
+    needs: check 
+    if: contains(needs.check.outputs.packages, 'natschanges') 
+    runs-on: ubuntu-latest 
+    steps: 
+      - name: Checkout the current repo 
+        uses: actions/checkout@v1 
+      - name: Create kind cluster 
+        uses: helm/kind-action@v1.1.0 
+      - name: Helm installation
+        uses: Azure/setup-helm@v1
+        with:
+          version: v3.3.4        
+      - name: install keda and fission 
+        run: |
+          chmod +x test/install.sh 
+          test/install.sh 
+      - name: Build and Push the docker image nats
+        uses: docker/build-push-action@v2
+        with:
+          context: nats-streaming-http-connector/
+          tags:  localhost:5000/nats-steaming:latest
+          push: true          
+      - name: Create Nats Streaming server 
+        run: | 
+          cd nats-streaming-http-connector/test/nats-streaming-server
+          kubectl apply -f nats-dep.yaml
+      - name: Create fission environment, package and producer function
+        run: |
+           helm list
+           fission env create --name goenv --image fission/go-env --builder fission/go-builder
+           zip -qr nats.zip *
+           fission package create --env goenv --src nats.zip
+           fission fn create --name producerfunc --env goenv --pkg natss-zip-cy16 --entrypoint Handler
+           fission package info --name nats-zip-cy16
+      - name: Create fission environment and consumer  function
+        run: |
+             fission env create --name nodeenv --image fission/node-env
+             fission fn create --name consumerfunc --env nodeenv --code nats-streaming-http-connector/test/consumer/hellonats.js
+      - name: Run fission for nats connector 
+        run: | 
+          fission mqt create  --name natstest --function helloworld --mqtype stan --topic request --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=request --metadata queueGroup=grp1 --metadata durableName=due --metadata natsServerMonitoringEndpoint=nats-monitor.default.svc.cluster.local:8222 --metadata clusterId=test-cluster --metadata clientId=stan-sub --metadata natsServer=nats://nats-monitor:4222
+      - name: Validate and test nats connector
+        run: | 
+          sleep 2
+          fission fn test --name  
+          kubectl get pods            
+          
 # job for kafka connector
   kafka: 
     needs: check 
