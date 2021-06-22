@@ -163,9 +163,9 @@ jobs:
            helm list
            fission env create --name goenv --image fission/go-env --builder fission/go-builder
            zip -qr nats.zip nats-streaming-http-connector/test/producer/producer.go
-           pack=$(fission package create --env goenv --name nats-zip --src nats.zip | awk '{ print $2 }')
-           fission fn create --name producerfunc --env goenv --pkg $pack --entrypoint Handler
-           fission package info --name $pack 
+           (fission package create --env goenv --name nats-zip --src nats.zip | awk '{ print $2 }'
+           fission fn create --name producerfunc --env goenv --pkg nats-zip --entrypoint Handler
+           fission package info --name nats-zip 
       - name: Create fission environment and consumer  function
         run: |
              fission env create --name nodeenv --image fission/node-env
