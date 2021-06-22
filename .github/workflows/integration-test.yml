@@ -95,9 +95,8 @@ jobs:
       - name: Create Nats Streaming server 
         run: | 
           cd nats-streaming-http-connector/test/nats-streaming-server
-          curl -sSL https://nats-io.github.io/k8s/setup.sh | sh
           kubectl get po
-        #kubectl apply -f nats-dep.yaml 
+          kubectl apply -f nats-dep.yaml 
           
       - name: Publish messages to nats server 
         run: |
