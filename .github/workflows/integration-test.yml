@@ -186,6 +186,10 @@ jobs:
           kubectl get po
           kubectl describe deploy | grep -i image
           kubectl logs -l app=nats
+          echo "*************describe deloy******************"
+          kubectl describe deploy
+          echo "***************describe po ***************"
+          kubectl describe po 
           fission fn test --name producerfunc
           kubectl get pods            
           
