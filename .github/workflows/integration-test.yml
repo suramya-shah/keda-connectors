@@ -290,5 +290,5 @@ jobs:
        # kubectl wait pod -l app=rabbitmqtest --for=condition=ready --timeout=-1s 
       - name: Get Rabbitmq consumed messages from queue 
         run: | 
-          sleep 10s 
-          i=0; while [[ $i -lt 10 ]]; do i=`expr $i + 1` && kubectl logs -n rabbits deployment.apps/rabbitmq-consumer; sleep 5s; done 
+          sleep 20s 
+          i=0; while [[ $i -lt 10 ]]; do i=`expr $i + 1` && kubectl logs -n rabbits deployment.apps/rabbitmq-consumer;kubectl get po -n rabbits; sleep 5s; done 
