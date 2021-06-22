@@ -176,7 +176,7 @@ jobs:
       - name: Validate and test nats connector
         run: | 
           sleep 2
-          fission fn test --name  
+          fission fn test --name producerfunc
           kubectl get pods            
           
 # job for kafka connector
