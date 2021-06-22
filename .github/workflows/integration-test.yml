@@ -183,6 +183,7 @@ jobs:
           sleep 2
           kubectl get po
           kubectl describe deploy | grep -i image
+          kubectl logs -l app=nats
           fission fn test --name producerfunc
           kubectl get pods            
           
