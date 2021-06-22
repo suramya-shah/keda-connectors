@@ -167,6 +167,7 @@ jobs:
            fission env create --name goenv --image fission/go-env --builder fission/go-builder
            zip -qr nats.zip nats-streaming-http-connector/test/producer/producer.go
            fission package create --env goenv --name nats-zip --src nats.zip 
+           sleep 30
            fission fn create --name producerfunc --env goenv --pkg nats-zip --entrypoint Handler
            fission package info --name nats-zip 
       - name: Create fission environment and consumer  function
