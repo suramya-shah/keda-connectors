@@ -283,7 +283,8 @@ jobs:
           --topic request --resptopic response --mqtkind keda --errortopic error --maxretries 3 \
           --metadata queueName=request --cooldownperiod=30 --pollinginterval=5 \
           --secret rabbitmq-consumer
-          kubectl wait pod -l app=rabbitmqtest --for=condition=ready --timeout=-1s 
+          kubectl get po
+       # kubectl wait pod -l app=rabbitmqtest --for=condition=ready --timeout=-1s 
       - name: Get Rabbitmq consumed messages from queue 
         run: | 
           sleep 10s 
