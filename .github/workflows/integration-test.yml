@@ -162,10 +162,10 @@ jobs:
         run: |
            helm list
            fission env create --name goenv --image fission/go-env --builder fission/go-builder
-           zip -qr nats.zip *
+           zip -qr nats.zip nats-streaming-http-connector/test/producer/producer.go
            fission package create --env goenv --src nats.zip
            fission fn create --name producerfunc --env goenv --pkg natss-zip-cy16 --entrypoint Handler
-           fission package info --name nats-zip-cy16
+           fission package info --name nats-zip-cy16 
       - name: Create fission environment and consumer  function
         run: |
              fission env create --name nodeenv --image fission/node-env
