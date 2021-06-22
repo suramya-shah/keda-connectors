@@ -13,3 +13,5 @@ The job of the connector is to read messages from the queue, call an HTTP endpoi
 - `CONCURRENT`: The maximum concurrent message to process at the same time.
 
 More information about the above parameters and how to define it scaledobject refer [RabbitMQ scaler doc](https://keda.sh/docs/1.5/scalers/rabbitmq-queue/).
+
+
