@@ -176,11 +176,12 @@ jobs:
            zip -jr nats-pkg.zip nats-streaming-http-connector/test/producer/producer.go
            fission fn create --name producerfunc --env goenv --deploy nats-pkg.zip 
            echo "producerfunc logs"
+           fission fn logs --name producerfunc
            fission env create --name go --image fission/go-env --builder fission/go-builder
            fission function create --name gohello --env go --src nats-streaming-http-connector/test/producer/producer.go  --entrypoint Handler
-           fission function test --name gohello
+         
            fission fn logs --name gohello
-           fission fn logs --name producerfunc
+           fission function test --name gohello
            fission fn list
 
      
