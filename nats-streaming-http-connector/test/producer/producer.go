@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	nc, err := nats.Connect("nats-streaming.fission.svc.local:4222")
+	nc, err := nats.Connect("nats://nats-streaming.fission.svc.local:4222")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -17,7 +17,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for i := 100; i < 200; i++ {
+	for i := 100; i < 110; i++ {
 		sc.Publish("request", []byte("Test"+strconv.Itoa(i)))
 	}
 
