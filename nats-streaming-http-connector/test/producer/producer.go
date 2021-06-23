@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"fmt"
 	"strconv"
 
 	"github.com/nats-io/nats.go"
@@ -20,6 +21,6 @@ func main() {
 	for i := 100; i < 110; i++ {
 		sc.Publish("request", []byte("Test"+strconv.Itoa(i)))
 	}
-
+	fmt.Println("Published all the messages")
 	select {}
 }
