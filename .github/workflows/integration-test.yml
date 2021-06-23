@@ -239,14 +239,14 @@ jobs:
           --metadata bootstrapServers=my-cluster-test-kafka-bootstrap.kafka.svc:9092 
           --metadata consumerGroup=bridge-quickstart-consumer-group --metadata topic=request-topic 
           --cooldownperiod=30 --pollinginterval=5 
-      - name: Produce Kafka messages Using Producer 
-        run: | 
-          cd kafka-http-connector/test/kubernetes/ 
-          kubectl apply -f kafka-produer.yaml 
-          kubectl wait -f kafka-produer.yaml --for=condition=complete --timeout=-1s 
-          kubectl delete job pi kubectl logs -l app=kafkatest --all-containers=true
-          kubectl get po 
-          kubectl describe deploy | grep -i image
+   #   - name: Produce Kafka messages Using Producer 
+    #    run: | 
+     #     cd kafka-http-connector/test/kubernetes/ 
+      #    kubectl apply -f kafka-produer.yaml 
+       #   kubectl wait -f kafka-produer.yaml --for=condition=complete --timeout=-1s 
+        #  kubectl delete job pi kubectl logs -l app=kafkatest --all-containers=true
+         # kubectl get po 
+         # kubectl describe deploy | grep -i image
 
   rabbitmq: 
     needs: check 
