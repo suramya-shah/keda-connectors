@@ -193,6 +193,8 @@ jobs:
           fission fn test --name producerfunc
           sleep 60
           kubectl get pods  --all-namespaces     
+          echo "*********************"
+          fission fn logs --name producerfunc
           
 # job for kafka connector
   kafka: 
