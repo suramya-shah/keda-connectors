@@ -178,6 +178,8 @@ jobs:
       - name: Validate and test nats connector
         run: | 
           sleep 60
+          kubectl describe deploy --all-namespaces
+          echo "**************************************************************************"
           kubectl get po --all-namespaces
           kubectl describe deploy | grep -i image
           kubectl logs -l app=nats
