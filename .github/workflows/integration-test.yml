@@ -95,10 +95,15 @@ jobs:
           docker push localhost:5000/nats-steaming:latest 
       - name: Create Nats Streaming server 
         run: | 
-          cd nats-streaming-http-connector/test/nats-streaming-server
+
+          kubectl apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
+
+          kubectl apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
           kubectl get po
-          kubectl apply -f nats-dep.yaml 
-          
+    #cd nats-streaming-http-connector/test/nats-streaming-server
+    #      kubectl get po
+     #     kubectl apply -f nats-dep.yaml 
+      #    # Single server NATS      
       - name: Publish messages to nats server 
         run: |
           go version
