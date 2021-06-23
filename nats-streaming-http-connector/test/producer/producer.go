@@ -9,11 +9,11 @@ import (
 )
 
 func main() {
-	nc, err := nats.Connect("nats-streaming-server.default.svc.cluster.local:4222")
+	nc, err := nats.Connect("nats://defaultFissionAuthToken@nats-streaming:4222")
 	if err != nil {
 		log.Fatal(err)
 	}
-	sc, err := stan.Connect("stan", "stan-sub", stan.NatsConn(nc))
+	sc, err := stan.Connect("fissionMQTrigger", "clientPub", stan.NatsConn(nc))
 	if err != nil {
 		log.Fatal(err)
 	}
