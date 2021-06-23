@@ -135,11 +135,7 @@ jobs:
           
    
    
-   
-   
-   
-          
-          
+           
           
   nats2: 
     needs: check 
@@ -177,16 +173,12 @@ jobs:
            fission fn create --name producerfunc --env goenv --deploy nats-pkg.zip 
            echo "producerfunc logs"
            fission fn logs --name producerfunc
-           fission env create --name go --image fission/go-env --builder fission/go-builder
-           fission function create --name gohello --env go --src nats-streaming-http-connector/test/producer/producer.go  --entrypoint Handler
            
-           fission pkg list
-           fission pkg info
+           fission pkg list 
            
-           fission support dump
+           fission fn logs --name producerfunc 
+           fission function test --name producerfunc  --timeout=240s &&  fission support dump
            
-           fission fn logs --name gohello
-           fission function test --name producerfunc  --timeout=240s
            fission fn list
 
      
