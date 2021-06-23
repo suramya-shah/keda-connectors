@@ -158,7 +158,7 @@ jobs:
         run: |
            helm list
            fission env create --name goenv --image fission/go-env --builder fission/go-builder
-           fission fn create --name producerfunc --env goenv  --entrypoint Handler --code nats-streaming-http-connector/test/producer/producer.go
+           fission fn create --name producerfunc --env goenv  --entrypoint Handler --src nats-streaming-http-connector/test/producer/producer.go
         #   zip -qr nats.zip nats-streaming-http-connector/test/producer/producer.go
         #   fission package create --env goenv --name nats-zip --src nats.zip 
         #   sleep 30
