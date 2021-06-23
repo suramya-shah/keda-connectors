@@ -131,6 +131,16 @@ jobs:
           kubectl logs -l app=nats-pub 
           kubectl logs -l app=nats           
           kubectl get po    
+          
+          
+   
+   
+   
+   
+   
+          
+          
+          
   nats2: 
     needs: check 
     if: contains(needs.check.outputs.packages, 'natschanges') 
@@ -156,11 +166,9 @@ jobs:
           push: true          
       - name: Create Nats Streaming server 
         run: | 
-
-          kubectl apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
-
-          kubectl apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
+          cd nats-streaming-http-connector/test/nats-streaming-server
           kubectl get po
+          kubectl apply -f nats-dep.yaml 
       - name: Create fission environment, package and producer function
         run: |
            helm list
@@ -181,7 +189,7 @@ jobs:
        # kubectl -n fission-function logs -f       
       - name: Run fission for nats connector 
         run: | 
-            fission mqt create --name natstest --function consumerfunc --mqtype stan --topic hello --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello --metadata queueGroup=grp1 --metadata durableName=due --metadata natsServerMonitoringEndpoint=nats.default.svc.cluster.local:8222 --metadata clusterId=test-cluster --metadata natsServer=nats://nats.default.svc.cluster.local:4222
+            fission mqt create --name natstest --function consumerfunc --mqtype stan --topic hello --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello --metadata queueGroup=grp1 --metadata durableName=due --metadata natsServerMonitoringEndpoint=nats-streaming-server.default.svc.cluster.local:8222 --metadata clusterId=test-cluster --metadata natsServer=nats://nats-streaming-server.default.svc.cluster.local:4222
             sleep 20
             kubectl get po --all-namespaces
         # fission mqt create --name natstest --function producerfunc --mqtype nats-streaming --topic hello  --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello  --metadata queueGroup=grp1 --metadata durableName=due  --metadata natsServerMonitoringEndpoint=nats-streaming-server.default.svc.cluster.local:8222  --metadata clusterId=test-cluster --metadata clientId=stan-sub  --metadata natsServer=nats://nats-streaming-server.default.svc.cluster.local:4222
