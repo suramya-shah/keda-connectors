@@ -13,7 +13,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	sc, err := stan.Connect("test-cluster", "stan-sub", stan.NatsConn(nc))
+	sc, err := stan.Connect("stan", "stan-sub", stan.NatsConn(nc))
 	if err != nil {
 		log.Fatal(err)
 	}
