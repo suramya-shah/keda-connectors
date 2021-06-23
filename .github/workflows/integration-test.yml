@@ -158,7 +158,9 @@ jobs:
            helm list
            fission env create --name goenv --image fission/go-env --builder fission/go-builder
            fission fn create --name producerfunc --env goenv  --entrypoint Handler --src nats-streaming-http-connector/test/producer/producer.go
-        #   zip -qr nats.zip nats-streaming-http-connector/test/producer/producer.go
+           echo "producerfunc logs"
+           fission fn logs --name producerfunc
+       #   zip -qr nats.zip nats-streaming-http-connector/test/producer/producer.go
         #   fission package create --env goenv --name nats-zip --src nats.zip 
         #   sleep 30
         #   fission package info --name nats-zip 
@@ -171,7 +173,7 @@ jobs:
        # kubectl -n fission-function logs -f       
       - name: Run fission for nats connector 
         run: | 
-            fission mqt create --name natstest --function consumerfunc --mqtype stan --topic hello --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello --metadata queueGroup=grp1 --metadata durableName=due --metadata natsServerMonitoringEndpoint=nats-streaming-server.default.svc.cluster.local:8222 --metadata clusterId=test-cluster --metadata natsServer=nats://nats-streaming-server:4222
+            fission mqt create --name natstest --function consumerfunc --mqtype stan --topic hello --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello --metadata queueGroup=grp1 --metadata durableName=due --metadata natsServerMonitoringEndpoint=nats-streaming-server.default.svc.cluster.local:8222 --metadata clusterId=test-cluster --metadata natsServer=nats://nats-streaming-server.default.svc.cluster.local:4222
             sleep 20
             kubectl get po --all-namespaces
         # fission mqt create --name natstest --function producerfunc --mqtype nats-streaming --topic hello  --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello  --metadata queueGroup=grp1 --metadata durableName=due  --metadata natsServerMonitoringEndpoint=nats-streaming-server.default.svc.cluster.local:8222  --metadata clusterId=test-cluster --metadata clientId=stan-sub  --metadata natsServer=nats://nats-streaming-server.default.svc.cluster.local:4222
@@ -193,8 +195,12 @@ jobs:
           fission fn test --name producerfunc
           sleep 60
           kubectl get pods  --all-namespaces     
-          echo "*********************"
+          echo "******producer logs*************"
           fission fn logs --name producerfunc
+          echo "*****************"
+          fission fn logs --name consumerfunc
+          
+          
           
 # job for kafka connector
   kafka: 
