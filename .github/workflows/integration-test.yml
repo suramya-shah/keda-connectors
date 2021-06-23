@@ -172,9 +172,9 @@ jobs:
       - name: Create fission environment, package and producer function
         run: |
            helm list
-           fission env create --name goenv --image fission/go-env --builder fission/go-builder 
+           fission env create --name goenv --image fission/go-env 
            zip -jr nats-pkg.zip nats-streaming-http-connector/test/producer/producer.go
-           fission fn create --name producerfunc --env goenv  --entrypoint "producer.go" --deploy nats-pkg.zip 
+           fission fn create --name producerfunc --env goenv --deploy nats-pkg.zip 
            echo "producerfunc logs"
            fission fn logs --name producerfunc
            fission fn list
@@ -185,7 +185,7 @@ jobs:
       - name: Create fission environment and consumer  function
         run: |
            fission env create --name nodeenv --image fission/node-env
-           fission fn create --name consumerfunc --env nodeenv --code nats-streaming-http-connector/test/consumer/hellonats.js   
+           fission fn create --name consumerfunc --env nodeenv --src nats-streaming-http-connector/test/consumer/hellonats.js   
            kubectl get po --all-namespaces
            fission fn logs --name consumerfunc
            fission fn list
