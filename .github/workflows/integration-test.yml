@@ -180,7 +180,7 @@ jobs:
           
       - name: Validate and test nats connector
         run: | 
-          sleep 60
+          sleep 120
           kubectl describe deploy --all-namespaces
           echo "**************************************************************************"
           kubectl get po --all-namespaces
