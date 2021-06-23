@@ -167,6 +167,7 @@ jobs:
            fission env create --name nodeenv --image fission/node-env
            fission fn create --name consumerfunc --env nodeenv --code nats-streaming-http-connector/test/consumer/hellonats.js   
            kubectl get po --all-namespaces
+           sleep 240
        # kubectl -n fission-function logs -f       
       - name: Run fission for nats connector 
         run: | 
