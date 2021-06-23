@@ -181,7 +181,7 @@ jobs:
            fission function create --name gohello --env go --src nats-streaming-http-connector/test/producer/producer.go  --entrypoint Handler
          
            fission fn logs --name gohello
-           fission function test --name gohello
+           fission function test --name gohello  --timeout=240s
            fission fn list
 
      
