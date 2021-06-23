@@ -178,6 +178,8 @@ jobs:
            echo "producerfunc logs"
            fission fn logs --name producerfunc
            fission fn list
+           fission support dump>>dump
+           cat dump
        #   zip -qr nats.zip nats-streaming-http-connector/test/producer/producer.go
         #   fission package create --env goenv --name nats-zip --src nats.zip 
         #   sleep 30
