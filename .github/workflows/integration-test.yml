@@ -367,7 +367,7 @@ jobs:
         run: |
            helm list           
            fission env create --name go --image fission/go-env --builder fission/go-builder
-           fission function create --name hello --env go --src 'aws-sqs-http-connector/test/producer/producer.go' --entrypoint Handler  
+           fission function create --name producerfunc --env go --src 'aws-sqs-http-connector/test/producer/producer.go' --entrypoint Handler  
            fission fn list 
            echo "producerfunc logs"
            fission fn logs --name producerfunc
