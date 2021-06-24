@@ -169,7 +169,8 @@ jobs:
         run: |
            helm list
            fission env create --name goenv --image fission/go-env 
-           zip -jr nats-pkg.zip nats-streaming-http-connector/test/producer/producer.go
+           cd nats-streaming-http-connector/test/producer
+           zip -jr nats-pkg.zip ./producer.go
            fission fn create --name producerfunc --env goenv --deploy nats-pkg.zip 
            echo "producerfunc logs"
            fission fn logs --name producerfunc
