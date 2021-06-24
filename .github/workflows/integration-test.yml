@@ -372,7 +372,7 @@ jobs:
            cd aws-sqs-http-connector/test/producer/
            zip -qr sqs.zip ./producer.go
            fission env create --name go --image fission/go-env --builder fission/go-builder
-           fission fn create --name producerfunc --env go --deploy sqs.zip --entrypoint Handler
+           fission fn create --name producerfunc --env go --src sqs.zip --entrypoint producer.go
           
            
        #fission env create --name goenv --image fission/go-env --builder fission/go-builder
