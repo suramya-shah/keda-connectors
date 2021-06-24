@@ -371,9 +371,8 @@ jobs:
            helm list   
            cd aws-sqs-http-connector/test/producer/
            zip -qr sqs.zip ./producer.go
-           fission env create --name go --image fission/go-env 
-           
-           fission fn create --name producerfunc --env go --deploy sqs.zip
+           fission env create --name go --image fission/go-env --builder fission/go-builder
+           fission fn create --name producerfunc --env go --deploy sqs.zip --entrypoint Handler
           
            
        #fission env create --name goenv --image fission/go-env --builder fission/go-builder
