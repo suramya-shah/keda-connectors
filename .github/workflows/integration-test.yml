@@ -372,7 +372,7 @@ jobs:
            fission env create --name go --image fission/go-env 
            
            fission fn create --name producerfunc --env go --deploy sqs.zip
-           fission function test --name producerfunc 
+          
            
        #fission env create --name goenv --image fission/go-env --builder fission/go-builder
        #    fission package create --env goenv --src sqs.zip --name sqs
@@ -423,6 +423,7 @@ jobs:
           docker build -t localhost:5000/test-queue:latest . 
           docker push localhost:5000/test-queue:latest 
           kubectl apply -f test.yaml 
+          fission function test --name producerfunc 
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
         run: |
           cd aws-sqs-http-connector/test/kubernetes 
