@@ -367,8 +367,9 @@ jobs:
            docker push localhost:5000/aws-sqs-connector:latest
       - name: Create fission environment, package and producer function
         run: |
-           helm list           
-           zip -qr sqs.zip aws-sqs-http-connector/test/producer/producer.go
+           helm list   
+           cd aws-sqs-http-connector/test/producer/
+           zip -qr sqs.zip ./producer.go
            fission env create --name go --image fission/go-env 
            
            fission fn create --name producerfunc --env go --deploy sqs.zip
@@ -401,7 +402,8 @@ jobs:
       - name: Create fission environment and consumer  function
         run: |
            fission env create --name nodeenv --image fission/node-env
-           fission fn create --name consumerfunc --env nodeenv --src aws-sqs-http-connector/test/consumer/consumer.js   
+           cd aws-sqs-http-connector/test/consumer
+           fission fn create --name consumerfunc --env nodeenv --src ./consumer.js   
            kubectl get po --all-namespaces
            fission fn logs --name consumerfunc
            fission fn list
