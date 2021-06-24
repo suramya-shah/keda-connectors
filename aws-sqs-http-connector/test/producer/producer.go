@@ -12,7 +12,7 @@ import (
 ​
 func main() {
 ​
-	queueURL := "http://localstack:31000/queue/my_queue"
+	queueURL := "http://localstack.default.svc.cluster.local:31000/queue/my_queue"
 	region := "us-east-1"
 	config := &aws.Config{
 		Region:      &region,
