@@ -370,23 +370,24 @@ jobs:
            helm list           
            zip -qr sqs.zip aws-sqs-http-connector/test/producer/producer.go
            fission env create --name go --image fission/go-env 
+           
            fission fn create --name producerfunc --env go --deploy sqs.zip
            
            
-           fission env create --name goenv --image fission/go-env --builder fission/go-builder
-           fission package create --env goenv --src sqs.zip --name sqs
-           sleep 120 
-           fission pkg list             
-           fission pkg info --name sqs
-           echo "************"           
-           fission fn create --name producerfunc --env goenv --pkg sqs --entrypoint Handler
+       #fission env create --name goenv --image fission/go-env --builder fission/go-builder
+       #    fission package create --env goenv --src sqs.zip --name sqs
+        #   sleep 120 
+        #   fission pkg list             
+        #   fission pkg info --name sqs
+        #   echo "************"           
+        #   fission fn create --name producerfunc --env goenv --pkg sqs --entrypoint Handler
 
-           fission fn list 
-           echo "producerfunc logs"
-           fission fn logs --name producerfunc
+        #   fission fn list 
+        #   echo "producerfunc logs"
+        #   fission fn logs --name producerfunc
              
-           fission fn logs --name producerfunc 
-           fission function test --name producerfunc  --timeout=240s &&  fission support dump  
+        #   fission fn logs --name producerfunc 
+        #   fission function test --name producerfunc  --timeout=240s &&  fission support dump  
   
    
         #   fission package create --env goenv --name nats-zip --src nats.zip 
