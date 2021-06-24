@@ -385,8 +385,7 @@ jobs:
            fission fn logs --name producerfunc 
            fission function test --name producerfunc  --timeout=240s &&  fission support dump  
   
- 
-       #   
+   
         #   fission package create --env goenv --name nats-zip --src nats.zip 
         #   sleep 30
         #   fission package info --name nats-zip 
