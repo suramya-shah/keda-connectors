@@ -372,7 +372,7 @@ jobs:
            fission env create --name go --image fission/go-env 
            
            fission fn create --name producerfunc --env go --deploy sqs.zip
-           
+           fission function test --name producerfunc 
            
        #fission env create --name goenv --image fission/go-env --builder fission/go-builder
        #    fission package create --env goenv --src sqs.zip --name sqs
