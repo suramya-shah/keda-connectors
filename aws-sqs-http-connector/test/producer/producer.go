@@ -12,11 +12,11 @@ import (
 ​
 func main() {
 ​
-	queueURL := "https://sqs.ap-south-1.amazonaws.com/xxxxxxxxxxxx/input"
-	region := "ap-south-1"
+	queueURL := "http://localstack:31000"
+	region := "us-east-1"
 	config := &aws.Config{
 		Region:      &region,
-		Credentials: credentials.NewStaticCredentials("xxxxxxxxxxxx", "xxxxxxxxxx", ""),
+		Credentials: credentials.NewStaticCredentials("foo", "bar", ""),
 	}
 ​
 	sess, err := session.NewSession(config)
