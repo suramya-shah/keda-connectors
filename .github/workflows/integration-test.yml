@@ -366,17 +366,20 @@ jobs:
       - name: Create fission environment, package and producer function
         run: |
            helm list           
-           fission env create --name go --image fission/go-env --builder fission/go-builder
-           fission function create --name producerfunc --env go --src 'aws-sqs-http-connector/test/producer/producer.go' --entrypoint Handler  
+           zip -qr sqs.zip nats-streaming-http-connector/test/producer/producer.go
+           fission env create --name goenv --image fission/go-env --builder fission/go-builder
+           fission package create --env goenv --src sqs.zip --name sqs
+           fission fn create --name producerfunc --env goenv --pkg sqs --entrypoint Handler
+           fission pkg list
            fission fn list 
            echo "producerfunc logs"
            fission fn logs --name producerfunc
-           fission pkg list  
+             
            fission fn logs --name producerfunc 
            fission function test --name producerfunc  --timeout=240s &&  fission support dump  
   
  
-       #   zip -qr nats.zip nats-streaming-http-connector/test/producer/producer.go
+       #   
         #   fission package create --env goenv --name nats-zip --src nats.zip 
         #   sleep 30
         #   fission package info --name nats-zip 
