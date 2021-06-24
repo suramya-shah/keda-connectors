@@ -352,7 +352,8 @@ jobs:
     steps: 
       - name: Checkout the current repo 
         uses: actions/checkout@v2 
-        ref: feature/integration-tests
+        with:
+          ref: feature/integration-tests
       - name: Create kind cluster 
         uses: helm/kind-action@v1.1.0 
       - name: install keda and fission 
