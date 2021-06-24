@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"fmt"
 	"strconv"
 
 	"github.com/nats-io/nats.go"
@@ -9,17 +10,17 @@ import (
 )
 
 func main() {
-	nc, err := nats.Connect("nats://localhost:4222")
+	nc, err := nats.Connect("nats-streaming:4222")
 	if err != nil {
 		log.Fatal(err)
 	}
-	sc, err := stan.Connect("test-cluster", "stan-sub", stan.NatsConn(nc))
+	sc, err := stan.Connect("fissionMQTrigger", "clientPub", stan.NatsConn(nc))
 	if err != nil {
 		log.Fatal(err)
 	}
-	for i := 100; i < 200; i++ {
+	for i := 100; i < 110; i++ {
 		sc.Publish("request", []byte("Test"+strconv.Itoa(i)))
 	}
-
+	fmt.Println("Published all the messages")
 	select {}
 }

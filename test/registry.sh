@@ -33,3 +33,6 @@ docker network connect "kind" "${reg_name}"
 for node in $(kubectl get nodes -o name); do
 	 kubectl annotate "$node" "kind.x-k8s.io/registry=localhost:${reg_port}";
  done
+
+
+kubectl cluster-info --context kind-kind-registry-svc
