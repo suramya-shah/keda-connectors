@@ -366,7 +366,7 @@ jobs:
       - name: Create fission environment, package and producer function
         run: |
            helm list           
-           zip -qr sqs.zip nats-streaming-http-connector/test/producer/producer.go
+           zip -qr sqs.zip aws-sqs-http-connector/test/producer/producer.go
            fission env create --name goenv --image fission/go-env --builder fission/go-builder
            fission package create --env goenv --src sqs.zip --name sqs
            sleep 120 
