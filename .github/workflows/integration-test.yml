@@ -60,6 +60,7 @@ jobs:
           docker build -t localhost:5000/test-queue:latest . 
           docker push localhost:5000/test-queue:latest 
           kubectl apply -f test.yaml 
+          kubectl logs -l app=queue
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
         run: |
           cd aws-sqs-http-connector/test/kubernetes 
