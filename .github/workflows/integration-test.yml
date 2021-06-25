@@ -373,6 +373,7 @@ jobs:
            zip -qr sqs.zip ./producer.go
            fission env create --name go --image fission/go-env --builder fission/go-builder
            fission fn create --name producerfunc --env go --src sqs.zip --entrypoint Handler
+           
           
            
        #fission env create --name goenv --image fission/go-env --builder fission/go-builder
@@ -407,14 +408,16 @@ jobs:
            kubectl get po --all-namespaces
            fission fn logs --name consumerfunc
            fission fn list
-           sleep 240             
-
-     # - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
-     #   run: | 
-     #     cd aws-sqs-http-connector/test/kubernetes 
-     #     docker build -t localhost:5000/aws-sqs-test-connector:latest . 
-     #     docker push localhost:5000/aws-sqs-test-connector:latest 
-     #     kubectl apply -f localstack.yaml      
+           sleep 240
+           
+      - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
+        run: | 
+          cd aws-sqs-http-connector/test/kubernetes 
+          docker build -t localhost:5000/aws-sqs-test-connector:latest . 
+          docker push localhost:5000/aws-sqs-test-connector:latest 
+          kubectl apply -f localstack.yaml     
+          kubectl logs -l app=localstack
+          fission function test --name producerfunc                    
       - name: Build SQS test queue 
         run: | 
           kubectl apply -f aws-sqs-http-connector/test/kubernetes/localstack.yaml 
