@@ -370,7 +370,7 @@ jobs:
         run: |
            helm list   
            cd aws-sqs-http-connector/test/producer/
-           zip -qr sqs.zip ./hello.go
+           zip -qr sqs.zip ./producer.go
            fission env create --name go --image fission/go-env --builder fission/go-builder
            fission fn create --name producerfunc --env go --src sqs.zip --entrypoint Handler
           
