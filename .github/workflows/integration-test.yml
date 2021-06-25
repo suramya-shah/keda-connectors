@@ -408,7 +408,7 @@ jobs:
            kubectl get po --all-namespaces
            fission fn logs --name consumerfunc
            fission fn list
-           sleep 240
+           
            
       - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
         run: | 
