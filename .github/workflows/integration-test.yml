@@ -419,6 +419,7 @@ jobs:
           docker build -t localhost:5000/test-queue:latest . 
           docker push localhost:5000/test-queue:latest 
           kubectl apply -f test.yaml 
+          kubectl apply -f svc.yaml
           kubectl get po 
           sleep 240
           kubectl logs -l app=queue --all-containers=true
