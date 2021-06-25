@@ -420,7 +420,7 @@ jobs:
           docker push localhost:5000/test-queue:latest 
           kubectl apply -f test.yaml 
           kubectl get po 
-          kubectl logs -l app=localstack
+          kubectl logs -l app=queue
           fission function test --name producerfunc 
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
         run: |
