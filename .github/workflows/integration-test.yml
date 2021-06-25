@@ -342,11 +342,6 @@ jobs:
           i=0; while [[ $i -lt 10 ]]; do i=`expr $i + 1` && kubectl logs -n rabbits deployment.apps/rabbitmq-consumer;kubectl get po -n rabbits; sleep 5s; done 
           
           
-          
-          
-
-
-
   sqs2: 
     needs: check 
     if: contains(needs.check.outputs.packages, 'sqschanges') 
@@ -374,9 +369,7 @@ jobs:
            zip -qr sqs.zip ./producer.go
            fission env create --name go --image fission/go-env --builder fission/go-builder
            fission fn create --name producerfunc --env go --src sqs.zip --entrypoint Handler
-           
-          
-           
+                                
        #fission env create --name goenv --image fission/go-env --builder fission/go-builder
        #    fission package create --env goenv --src sqs.zip --name sqs
         #   sleep 120 
@@ -417,8 +410,7 @@ jobs:
           docker build -t localhost:5000/aws-sqs-test-connector:latest . 
           docker push localhost:5000/aws-sqs-test-connector:latest 
           kubectl apply -f localstack.yaml     
-          kubectl logs -l app=localstack
-                  
+
       - name: Build SQS test queue 
         run: | 
           kubectl apply -f aws-sqs-http-connector/test/kubernetes/localstack.yaml 
