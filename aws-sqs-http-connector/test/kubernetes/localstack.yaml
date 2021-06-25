@@ -13,10 +13,6 @@ spec:
         app: localstack
     spec:
       containers:
-      initContainers:
-      - name: create-queue
-        image: amazon/aws-cli
-        command: ['sh', '-c', "aws configure set aws_access_key_id foo && aws configure set aws_secret_access_key bar && echo '[default]' > ~/.aws/config && echo 'region = us-east-1' >> ~/.aws/config && echo 'output = json' >> ~/.aws/config && aws --endpoint-url=http://localstack:31000 sqs create-queue --queue-name my_queue && aws --endpoint-url=http://localstack:31000 sqs create-queue --queue-name responseTopic"]                 
         - name: localstack
           image: localstack/localstack:0.8.6
           ports:
@@ -28,7 +24,10 @@ spec:
             # with the SERVICES environment variable, you can tell LocalStack
             # what services to expose on what port
             - name: SERVICES
-              value: "sqs:31000"
+              value: "sqs:31000"       
+        - name: create-queue
+          image: amazon/aws-cli
+          command: ['sh', '-c', "aws configure set aws_access_key_id foo && aws configure set aws_secret_access_key bar && echo '[default]' > ~/.aws/config && echo 'region = us-east-1' >> ~/.aws/config && echo 'output = json' >> ~/.aws/config && aws --endpoint-url=http://localstack:31000 sqs create-queue --queue-name my_queue && aws --endpoint-url=http://localstack:31000 sqs create-queue --queue-name responseTopic"]                 
 ---
 apiVersion: v1
 kind: Service
