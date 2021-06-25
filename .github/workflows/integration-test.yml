@@ -52,6 +52,7 @@ jobs:
           cd aws-sqs-http-connector/test/kubernetes 
           docker build -t localhost:5000/aws-sqs-test-connector:latest . 
           docker push localhost:5000/aws-sqs-test-connector:latest 
+          sleep 30
           kubectl apply -f localstack.yaml 
       - name: Build SQS test queue 
         run: | 
