@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: test-message-queue
+spec:
+  type: ExternalName
+  externalName: test-message-queue.default.svc.cluster.local
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+    - name: sqs
+      protocol: TCP
+      port: 31000
+      targetPort: 31000
