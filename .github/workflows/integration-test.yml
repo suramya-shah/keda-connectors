@@ -421,8 +421,9 @@ jobs:
           kubectl apply -f test.yaml 
           kubectl get po 
           sleep 240
-          kubectl logs -l app=queue
+          kubectl logs -l app=queue --all-containers=true
           fission function test --name producerfunc 
+          
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
         run: |
           cd aws-sqs-http-connector/test/kubernetes 
