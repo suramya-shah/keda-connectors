@@ -417,7 +417,7 @@ jobs:
           docker push localhost:5000/aws-sqs-test-connector:latest 
           kubectl apply -f localstack.yaml     
           kubectl logs -l app=localstack
-          fission function test --name producerfunc                    
+                  
       - name: Build SQS test queue 
         run: | 
           kubectl apply -f aws-sqs-http-connector/test/kubernetes/localstack.yaml 
