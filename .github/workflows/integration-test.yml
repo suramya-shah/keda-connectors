@@ -421,7 +421,7 @@ jobs:
           fission pkg info --name sqs
           fission fn create --name producerfunc --pkg sqs --env goenv  --entrypoint main
           fission function list
-          fission function test --name 'producerfunc' --verbosity=2
+          fission function test --name 'producerfunc' --verbosity=2 --timeout 120s
           
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
         run: |
