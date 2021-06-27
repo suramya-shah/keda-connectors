@@ -367,15 +367,13 @@ jobs:
         run: |
            helm list   
            cd aws-sqs-http-connector/test/producer/
-           zip -qr sqs.zip ./producer.go
-          
-           fission env create --name goenv --image fission/go-env --builder fission/go-builder
+           zip -qr sqs.zip ./producer.go          
+           fission env create --name goenv --image fission/go-env:latest --builder fission/go-builder:latest
            fission package create --env goenv --src sqs.zip --name sqs
            fission pkg list             
            fission pkg info --name sqs    
            sleep 120
-           fission fn create --name producerfunc --env goenv --pkg sqs --entrypoint Handler
-           fission function list
+           
                                 
        #fission env create --name goenv --image fission/go-env --builder fission/go-builder
        #    fission package create --env goenv --src sqs.zip --name sqs
@@ -403,7 +401,7 @@ jobs:
            #fission fn create --name producerfunc --env goenv --deploy nats-pkg.zip 
       - name: Create fission environment and consumer  function
         run: |
-           fission env create --name nodeenv --image fission/node-env
+           fission env create --name nodeenv --image fission/node-env:latest
            cd aws-sqs-http-connector/test/consumer
            fission fn create --name consumerfunc --env nodeenv --src ./consumer.js   
            kubectl get po --all-namespaces
@@ -431,7 +429,9 @@ jobs:
           kubectl logs -l app=queue --all-containers=true
           kubectl --namespace fission-function logs -l functionName=producerfunc
           fission pkg list             
-          fission pkg info --name sqs      
+          fission pkg info --name sqs
+          fission fn create --name producerfunc --env goenv --pkg sqs --entrypoint Handler
+          fission function list
           fission function test --name 'producerfunc' --verbosity=2 
           
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
