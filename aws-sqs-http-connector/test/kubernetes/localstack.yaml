@@ -25,6 +25,10 @@ spec:
             # what services to expose on what port
             - name: SERVICES
               value: "sqs:31000"
+          resources: {}
+          volumeMounts:
+            - mountPath: /tmp/localstack
+              name: localstack-claim0              
 ---
 apiVersion: v1
 kind: Service
