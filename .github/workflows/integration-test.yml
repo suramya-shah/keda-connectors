@@ -180,7 +180,7 @@ jobs:
            fission pkg list 
            
            fission fn logs --name producerfunc 
-           fission function test --name producerfunc  --timeout=240s &&  fission support dump
+           fission function test --name producerfunc --fnNamespace='fission-function' --timeout=240s &&  fission support dump
            
            fission fn list
 
@@ -427,7 +427,7 @@ jobs:
           kubectl get po 
           sleep 240
           kubectl logs -l app=queue --all-containers=true
-          fission function test --name producerfunc 
+          fission function test --name 'producerfunc' --fnNamespace='fission-function'
           
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
         run: |
