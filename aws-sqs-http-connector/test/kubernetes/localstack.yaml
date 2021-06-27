@@ -37,3 +37,6 @@ spec:
     - port: 31000
       protocol: TCP
       name: sqs              
+    - port: 80
+      protocol: HTTP
+      name: http
