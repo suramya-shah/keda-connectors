@@ -417,6 +417,7 @@ jobs:
           sleep 240
           kubectl logs -l app=queue --all-containers=true
           kubectl --namespace fission-function logs -l functionName=producerfunc
+          kubectl get svc -n fission
           fission pkg list             
           fission pkg info --name sqs
           fission fn create --name producerfunc --pkg sqs --env goenv  --entrypoint main
