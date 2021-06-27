@@ -420,14 +420,15 @@ jobs:
           kubectl --namespace fission-function logs -l functionName=producerfunc
           kubectl get svc -n fission
     
-
+          export FISSION_ROUTER=$(kubectl --namespace fission get svc router -o=jsonpath='{..ip}')
+          echo $FISSION_ROUTER
           kubectl describe svc router -n fission
           kubectl get po -n fission
           fission pkg list             
           fission pkg info --name sqs
           fission fn create --name producerfunc --pkg sqs --env goenv  --entrypoint main
           fission function list
-          fission function test --name 'producerfunc' --verbosity=2
+          fission function test --name 'producerfunc' --verbosity=2  --subpath='http://localstack.default.svc.cluster.local:31000/queue/my_queue'
           
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
         run: |
