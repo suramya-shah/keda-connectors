@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
-	"log"
 )
 
 func main() {
@@ -21,7 +22,7 @@ func main() {
 		log.Panic("Error while creating session")
 	}
 	svc := sqs.New(sess)
-	for i := 100; i < 200; i++ {
+	for i := 100; i < 110; i++ {
 		msg := fmt.Sprintf("Hello Msg %v", i+1)
 		_, err := svc.SendMessage(&sqs.SendMessageInput{
 			DelaySeconds: aws.Int64(10),
