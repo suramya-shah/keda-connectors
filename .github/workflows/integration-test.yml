@@ -421,6 +421,7 @@ jobs:
           kubectl get svc -n fission
     
           export FISSION_ROUTER=$(kubectl --namespace fission get svc router -o=jsonpath='{..ip}')
+          echo $FISSION_ROUTER
           kubectl describe svc router -n fission
           kubectl get po -n fission
           fission pkg list             
