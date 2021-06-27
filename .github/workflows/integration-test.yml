@@ -424,9 +424,9 @@ jobs:
           kubectl --namespace fission-function logs -l functionName=producerfunc
           fission pkg list             
           fission pkg info --name sqs
-          fission fn create --name producerfunc --pkg sqs --env goenv
+          fission fn create --name producerfunc --pkg sqs --env goenv  --entrypoint Handler
           fission function list
-          fission function test --name 'producerfunc' --verbosity=2 --entrypoint Handler
+          fission function test --name 'producerfunc' --verbosity=2
           
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
         run: |
