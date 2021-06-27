@@ -419,7 +419,7 @@ jobs:
           kubectl logs -l app=queue --all-containers=true
           kubectl --namespace fission-function logs -l functionName=producerfunc
           kubectl get svc -n fission
-          export FISSION_URL=http://$(kubectl --namespace fission get svc controller -o=jsonpath='{..ip}')
+    
           export FISSION_ROUTER=$(kubectl --namespace fission get svc router -o=jsonpath='{..ip}')
           kubectl describe svc router -n fission
           kubectl logs -f application=fission-router -n fission
