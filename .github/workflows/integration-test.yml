@@ -362,13 +362,12 @@ jobs:
         run: |
            helm list   
            cd aws-sqs-http-connector/test/producer/
-           zip -qr sqs.zip ./producer.go          
+           zip -qr sqs.zip *        
            fission env create --name goenv --image fission/go-env:1.11.0  --builder fission/go-builder:1.11.0
            fission package create --env goenv --src sqs.zip --name sqs
            fission pkg list             
            fission pkg info --name sqs    
-           sleep 120
-                                      
+           sleep 120                                     
        #fission env create --name goenv --image fission/go-env --builder fission/go-builder
        #    fission package create --env goenv --src sqs.zip --name sqs
         #   sleep 120 
@@ -382,14 +381,10 @@ jobs:
         #   fission fn logs --name producerfunc
              
         #   fission fn logs --name producerfunc 
-        #   fission function test --name producerfunc  --timeout=240s &&  fission support dump  
-  
-   
+        #   fission function test --name producerfunc  --timeout=240s &&  fission support dump     
         #   fission package create --env goenv --name nats-zip --src nats.zip 
         #   sleep 30
-        #   fission package info --name nats-zip 
-        
-        
+        #   fission package info --name nats-zip          
                   # fission env create --name goenv --image fission/go-env 
            #zip -jr nats-pkg.zip aws-sqs-http-connector/test/producer/producer.go
            #fission fn create --name producerfunc --env goenv --deploy nats-pkg.zip 
@@ -400,8 +395,7 @@ jobs:
            fission fn create --name consumerfunc --env nodeenv --src ./consumer.js   
            kubectl get po --all-namespaces
            fission fn logs --name consumerfunc
-           fission fn list
-           
+           fission fn list           
            
       - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
         run: | 
