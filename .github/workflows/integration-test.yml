@@ -133,12 +133,7 @@ jobs:
           kubectl logs -l app=nats-pub 
           kubectl logs -l app=nats           
           kubectl get po    
-          
-          
-   
-   
-           
-          
+                    
   nats2: 
     needs: check 
     if: contains(needs.check.outputs.packages, 'natschanges') 
@@ -228,8 +223,7 @@ jobs:
           echo "*****************"
           fission fn logs --name consumerfunc
           
-          
-          
+                    
 # job for kafka connector
   kafka: 
     needs: check 
@@ -343,8 +337,7 @@ jobs:
           sleep 20s 
           kubectl describe deploy | grep -i image
           i=0; while [[ $i -lt 10 ]]; do i=`expr $i + 1` && kubectl logs -n rabbits deployment.apps/rabbitmq-consumer;kubectl get po -n rabbits; sleep 5s; done 
-          
-          
+                  
   sqs2: 
     needs: check 
     if: contains(needs.check.outputs.packages, 'sqschanges') 
@@ -370,13 +363,12 @@ jobs:
            helm list   
            cd aws-sqs-http-connector/test/producer/
            zip -qr sqs.zip ./producer.go          
-           fission env create --name goenv --image fission/go-env:latest --builder fission/go-builder:latest
+           fission env create --name goenv --image fission/go-env:latest 
            fission package create --env goenv --src sqs.zip --name sqs
            fission pkg list             
            fission pkg info --name sqs    
            sleep 120
-           
-                                
+                                      
        #fission env create --name goenv --image fission/go-env --builder fission/go-builder
        #    fission package create --env goenv --src sqs.zip --name sqs
         #   sleep 120 
@@ -432,7 +424,7 @@ jobs:
           kubectl --namespace fission-function logs -l functionName=producerfunc
           fission pkg list             
           fission pkg info --name sqs
-          fission fn create --name producerfunc --code aws-sqs-http-connector/test/producer/producer.go --env goenv
+          fission fn create --name producerfunc --pkg sqs --env goenv
           fission function list
           fission function test --name 'producerfunc' --verbosity=2 
           
