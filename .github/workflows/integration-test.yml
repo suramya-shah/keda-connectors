@@ -429,6 +429,7 @@ jobs:
           sleep 240
           
           kubectl logs -l app=queue --all-containers=true
+          kubectl --namespace fission-function logs -l functionName=producerfunc
           
           fission function test --name 'producerfunc' --verbosity=2 
           
