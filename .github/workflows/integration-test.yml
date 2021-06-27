@@ -432,7 +432,7 @@ jobs:
           kubectl --namespace fission-function logs -l functionName=producerfunc
           fission pkg list             
           fission pkg info --name sqs
-          fission fn create --name producerfunc --env goenv --pkg sqs --entrypoint Handler
+          fission fn create --name producerfunc --code aws-sqs-http-connector/test/producer/producer.go --env goenv
           fission function list
           fission function test --name 'producerfunc' --verbosity=2 
           
