@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	nc, err := nats.Connect("nats-streaming:4222")
+	nc, err := nats.Connect("nats://nats-streaming.fission.svc.cluster.local:4222")
 	if err != nil {
 		log.Fatal(err)
 	}

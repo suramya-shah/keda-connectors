@@ -1,0 +1,10 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: test-message-queue
+spec:
+  ports:
+    - name: sqs
+      protocol: TCP
+      port: 31000
+      targetPort: 31000

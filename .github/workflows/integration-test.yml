@@ -52,6 +52,7 @@ jobs:
           cd aws-sqs-http-connector/test/kubernetes 
           docker build -t localhost:5000/aws-sqs-test-connector:latest . 
           docker push localhost:5000/aws-sqs-test-connector:latest 
+          sleep 30
           kubectl apply -f localstack.yaml 
       - name: Build SQS test queue 
         run: | 
@@ -59,6 +60,7 @@ jobs:
           docker build -t localhost:5000/test-queue:latest . 
           docker push localhost:5000/test-queue:latest 
           kubectl apply -f test.yaml 
+          kubectl logs -l app=queue
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
         run: |
           cd aws-sqs-http-connector/test/kubernetes 
@@ -131,12 +133,7 @@ jobs:
           kubectl logs -l app=nats-pub 
           kubectl logs -l app=nats           
           kubectl get po    
-          
-          
-   
-   
-           
-          
+                    
   nats2: 
     needs: check 
     if: contains(needs.check.outputs.packages, 'natschanges') 
@@ -169,15 +166,18 @@ jobs:
         run: |
            helm list
            fission env create --name goenv --image fission/go-env 
-           zip -jr nats-pkg.zip nats-streaming-http-connector/test/producer/producer.go
-           fission fn create --name producerfunc --env goenv --deploy nats-pkg.zip 
+           cd nats-streaming-http-connector/test/producer
+           zip -qr nats-pkg.zip ./producer.go
+           fission package create --env goenv --name nats-zip --src nats-pkg.zip
+           sleep 120 
+           fission fn create --name producerfunc --env goenv --pkg nats-zip
            echo "producerfunc logs"
            fission fn logs --name producerfunc
            
            fission pkg list 
            
            fission fn logs --name producerfunc 
-           fission function test --name producerfunc  --timeout=240s &&  fission support dump
+           fission function test --name producerfunc --verbosity=2 --timeout=240s &&  fission support dump
            
            fission fn list
 
@@ -223,8 +223,7 @@ jobs:
           echo "*****************"
           fission fn logs --name consumerfunc
           
-          
-          
+                    
 # job for kafka connector
   kafka: 
     needs: check 
@@ -338,3 +337,110 @@ jobs:
           sleep 20s 
           kubectl describe deploy | grep -i image
           i=0; while [[ $i -lt 10 ]]; do i=`expr $i + 1` && kubectl logs -n rabbits deployment.apps/rabbitmq-consumer;kubectl get po -n rabbits; sleep 5s; done 
+                  
+  sqs2: 
+    needs: check 
+    if: contains(needs.check.outputs.packages, 'sqschanges') 
+    runs-on: ubuntu-latest   
+    steps: 
+      - name: Checkout the current repo 
+        uses: actions/checkout@v2 
+        with:
+          ref: feature/integration-tests
+      - name: Create kind cluster 
+        uses: helm/kind-action@v1.1.0 
+      - name: install keda and fission 
+        run: | 
+          chmod +x test/install.sh 
+          test/install.sh 
+      - name: Create Docker Image for SQS KEDA Connector 
+        run: | 
+           cd aws-sqs-http-connector
+           docker build -t localhost:5000/aws-sqs-connector:latest . 
+           docker push localhost:5000/aws-sqs-connector:latest
+      - name: Create fission environment, package and producer function
+        run: |
+           helm list   
+           cd aws-sqs-http-connector/test/producer/
+           zip -qr sqs.zip ./producer.go          
+           fission env create --name goenv --image fission/go-env:1.11.0  --builder fission/go-builder:1.11.0
+           fission package create --env goenv --src sqs.zip --name sqs
+           fission pkg list             
+           fission pkg info --name sqs    
+           sleep 120
+                                      
+       #fission env create --name goenv --image fission/go-env --builder fission/go-builder
+       #    fission package create --env goenv --src sqs.zip --name sqs
+        #   sleep 120 
+        #   fission pkg list             
+        #   fission pkg info --name sqs
+        #   echo "************"           
+        #   fission fn create --name producerfunc --env goenv --pkg sqs --entrypoint Handler
+
+        #   fission fn list 
+        #   echo "producerfunc logs"
+        #   fission fn logs --name producerfunc
+             
+        #   fission fn logs --name producerfunc 
+        #   fission function test --name producerfunc  --timeout=240s &&  fission support dump  
+  
+   
+        #   fission package create --env goenv --name nats-zip --src nats.zip 
+        #   sleep 30
+        #   fission package info --name nats-zip 
+        
+        
+                  # fission env create --name goenv --image fission/go-env 
+           #zip -jr nats-pkg.zip aws-sqs-http-connector/test/producer/producer.go
+           #fission fn create --name producerfunc --env goenv --deploy nats-pkg.zip 
+      - name: Create fission environment and consumer  function
+        run: |
+           fission env create --name nodeenv --image fission/node-env:latest
+           cd aws-sqs-http-connector/test/consumer
+           fission fn create --name consumerfunc --env nodeenv --src ./consumer.js   
+           kubectl get po --all-namespaces
+           fission fn logs --name consumerfunc
+           fission fn list
+           
+           
+      - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
+        run: | 
+          cd aws-sqs-http-connector/test/kubernetes 
+          docker build -t localhost:5000/aws-sqs-test-connector:latest . 
+          docker push localhost:5000/aws-sqs-test-connector:latest 
+          kubectl apply -f localstack.yaml     
+
+      - name: Build SQS test queue 
+        run: | 
+          kubectl apply -f aws-sqs-http-connector/test/kubernetes/localstack.yaml 
+          cd aws-sqs-http-connector/test/validate 
+          docker build -t localhost:5000/test-queue:latest . 
+          docker push localhost:5000/test-queue:latest 
+          kubectl apply -f test.yaml 
+          kubectl apply -f svc.yaml
+          kubectl get po 
+          sleep 240
+          kubectl logs -l app=queue --all-containers=true
+          kubectl --namespace fission-function logs -l functionName=producerfunc
+          fission pkg list             
+          fission pkg info --name sqs
+          fission fn create --name producerfunc --pkg sqs --env goenv  --entrypoint Handler
+          fission function list
+          fission function test --name 'producerfunc' --verbosity=2
+          
+      - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
+        run: |
+          cd aws-sqs-http-connector/test/kubernetes 
+          
+          fission mqt create --name sqstest --function helloworld --mqtype aws-sqs-queue  \
+            --topic my_queue --resptopic responseTopic --mqtkind keda --errortopic errorTopic \
+            --maxretries 3 --metadata queueURL=http://localstack:31000/queue/my_queue \
+            --metadata identityOwner=operator --metadata awsRegion=us-east-1 --cooldownperiod=30 --pollinginterval=5 
+             
+          i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; sleep 5s; done 
+   
+      - name: Get SQS consumed messages from queue 
+        run: | 
+          kubectl describe deploy | grep -i image
+          i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; kubectl logs -l app=queue --all-containers=true; sleep 5s; done 
+          
