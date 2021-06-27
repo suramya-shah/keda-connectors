@@ -171,6 +171,7 @@ jobs:
            fission package create --env goenv --name nats-zip --src nats-pkg.zip
            sleep 120 
            fission pkg list
+           fission pkg info --name nats-zip
            fission fn create --name producerfunc --env goenv --pkg nats-zip --entrypoint main
            echo "producerfunc logs"
            fission fn logs --name producerfunc
