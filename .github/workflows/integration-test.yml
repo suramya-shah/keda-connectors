@@ -418,7 +418,7 @@ jobs:
           kubectl --namespace fission-function logs -l functionName=producerfunc
           fission pkg list             
           fission pkg info --name sqs
-          fission fn create --name producerfunc --pkg sqs --env goenv  --entrypoint Handler
+          fission fn create --name producerfunc --pkg sqs --env goenv  --entrypoint main
           fission function list
           fission function test --name 'producerfunc' --verbosity=2
           
