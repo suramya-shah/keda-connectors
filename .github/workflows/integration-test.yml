@@ -176,8 +176,7 @@ jobs:
            fission pkg info --name nats-zip
            fission fn create --name producerfunc --env goenv --pkg nats-zip --entrypoint main
            echo "producerfunc logs"
-           fission fn logs --name producerfunc
-           
+           fission fn logs --name producerfunc      
            fission pkg list 
            
            fission fn logs --name producerfunc 
@@ -420,8 +419,8 @@ jobs:
           kubectl logs -l app=queue --all-containers=true
           kubectl --namespace fission-function logs -l functionName=producerfunc
           kubectl get svc -n fission
-          kubectl --namespace fission port-forward $(kubectl --namespace fission get pod -l svc=router -o name) 3639:8888
-          export FISSION_ROUTER=127.0.0.1:3639
+          export FISSION_URL=http://$(kubectl --namespace fission get svc controller -o=jsonpath='{..ip}')
+          export FISSION_ROUTER=$(kubectl --namespace fission get svc router -o=jsonpath='{..ip}')
           kubectl describe svc router -n fission
           kubectl logs -f application=fission-router -n fission
           kubectl get po -n fission
