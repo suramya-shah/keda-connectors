@@ -418,6 +418,8 @@ jobs:
           kubectl logs -l app=queue --all-containers=true
           kubectl --namespace fission-function logs -l functionName=producerfunc
           kubectl get svc -n fission
+          kubectl describe svc router -n fission
+          kubectl logs -f app=router -n fission
           fission pkg list             
           fission pkg info --name sqs
           fission fn create --name producerfunc --pkg sqs --env goenv  --entrypoint main
