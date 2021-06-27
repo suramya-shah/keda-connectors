@@ -169,7 +169,9 @@ jobs:
            cd nats-streaming-http-connector/test/producer
            zip -qr nats-pkg.zip *
            fission package create --env goenv --name nats-zip --src nats-pkg.zip
-           sleep 120 
+           sleep 120
+           kubectl --namespace fission port-forward $(kubectl --namespace fission get pod -l svc=router -o name) 3639:8888
+           export FISSION_ROUTER=127.0.0.1:3639 
            fission pkg list
            fission pkg info --name nats-zip
            fission fn create --name producerfunc --env goenv --pkg nats-zip --entrypoint main
