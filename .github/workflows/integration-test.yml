@@ -372,7 +372,8 @@ jobs:
            fission env create --name goenv --image fission/go-env --builder fission/go-builder
            fission package create --env goenv --src sqs.zip --name sqs
            fission pkg list             
-           fission pkg info --name sqs       
+           fission pkg info --name sqs    
+           sleep 120
            fission fn create --name producerfunc --env goenv --pkg sqs --entrypoint Handler
            fission function list
                                 
@@ -427,10 +428,10 @@ jobs:
           kubectl apply -f svc.yaml
           kubectl get po 
           sleep 240
-          
           kubectl logs -l app=queue --all-containers=true
           kubectl --namespace fission-function logs -l functionName=producerfunc
-          
+          fission pkg list             
+          fission pkg info --name sqs      
           fission function test --name 'producerfunc' --verbosity=2 
           
       - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
