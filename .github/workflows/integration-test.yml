@@ -180,7 +180,6 @@ jobs:
            fission function test --name producerfunc --verbosity=2 --timeout=240s &&  fission support dump
            
            fission fn list
-
      
        #   zip -qr nats.zip nats-streaming-http-connector/test/producer/producer.go
         #   fission package create --env goenv --name nats-zip --src nats.zip 
@@ -363,7 +362,7 @@ jobs:
            helm list   
            cd aws-sqs-http-connector/test/producer/
            zip -qr sqs.zip *        
-           fission env create --name goenv --image fission/go-env:1.11.0  --builder fission/go-builder:1.11.0
+           fission env create --name goenv --image fission/go-env:latest  --builder fission/go-builder:latest
            fission package create --env goenv --src sqs.zip --name sqs
            fission pkg list             
            fission pkg info --name sqs    
