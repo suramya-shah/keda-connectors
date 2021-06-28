@@ -296,7 +296,7 @@ jobs:
           kubectl get po -n fission
           fission pkg list             
           fission pkg info --name sqs
-          fission fn create --name producerfunc --pkg sqs --env goenv  --entrypoint main
+          fission fn create --name producerfunc --pkg sqs --env goenv  --entrypoint "main"
           fission pkg info --name sqs
           fission function list
           fission function test --name producerfunc --verbosity=2  
