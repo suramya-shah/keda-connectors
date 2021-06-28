@@ -1,16 +1,13 @@
 package main
-​
 import (
 	"fmt"
 	"log"
 	"net/http"
-​
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 )
-​
 func Handler(w http.ResponseWriter, r *http.Request) {
 	queueURL := "http://localstack.default.svc.cluster.local:31000/queue/my_queue"
 	region := "us-east-2"
