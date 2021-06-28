@@ -26,115 +26,8 @@ jobs:
             - 'aws-sqs-http-connector/**' 
           natschanges: 
             - 'nats-streaming-http-connector/**'
-# job for nats streaming http connector
-
-  sqs: 
-    needs: check 
-    if: contains(needs.check.outputs.packages, 'sqschanges') 
-    runs-on: ubuntu-latest   
-    steps: 
-      - name: Checkout the current repo 
-        uses: actions/checkout@v1 
-      - name: Create kind cluster 
-        uses: helm/kind-action@v1.1.0 
-      - name: install keda and fission 
-        run: | 
-          chmod +x test/install.sh 
-          test/install.sh 
-      - name: Create Docker Image for SQS KEDA Connector 
-        run: | 
-           cd aws-sqs-http-connector
-           docker build -t localhost:5000/aws-sqs-connector:latest . 
-           docker push localhost:5000/aws-sqs-connector:latest
-
-      - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
-        run: | 
-          cd aws-sqs-http-connector/test/kubernetes 
-          docker build -t localhost:5000/aws-sqs-test-connector:latest . 
-          docker push localhost:5000/aws-sqs-test-connector:latest 
-          sleep 30
-          kubectl apply -f localstack.yaml 
-      - name: Build SQS test queue 
-        run: | 
-          cd aws-sqs-http-connector/test/validate 
-          docker build -t localhost:5000/test-queue:latest . 
-          docker push localhost:5000/test-queue:latest 
-          kubectl apply -f test.yaml 
-          kubectl logs -l app=queue
-      - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
-        run: |
-          cd aws-sqs-http-connector/test/kubernetes 
-          
-          fission mqt create --name sqstest --function helloworld --mqtype aws-sqs-queue  \
-            --topic my_queue --resptopic responseTopic --mqtkind keda --errortopic errorTopic \
-            --maxretries 3 --metadata queueURL=http://localstack:31000/queue/my_queue \
-            --metadata identityOwner=operator --metadata awsRegion=us-east-1 --cooldownperiod=30 --pollinginterval=5 
-             
-          i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; sleep 5s; done 
-   
-      - name: Get SQS consumed messages from queue 
-        run: | 
-          kubectl describe deploy | grep -i image
-          i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; kubectl logs -l app=queue --all-containers=true; sleep 5s; done 
+# job for nats streaming http connector                    
   nats: 
-    needs: check 
-    if: contains(needs.check.outputs.packages, 'natschanges') 
-    runs-on: ubuntu-latest 
-    steps: 
-      - name: Checkout the current repo 
-        uses: actions/checkout@v1 
-      - name: Create kind cluster 
-        uses: helm/kind-action@v1.1.0 
-      - name: install keda and fission 
-        run: |
-          chmod +x test/install.sh 
-          test/install.sh 
-         # fission env create --name goenv --image fission/go-env --builder fission/go-builder
-      - name: Create Docker Image for Nats Streaming KEDA Connector 
-        run: | 
-          cd nats-streaming-http-connector/ 
-          docker build -t localhost:5000/nats-steaming:latest . 
-          docker push localhost:5000/nats-steaming:latest 
-      - name: Create Nats Streaming server 
-        run: | 
-
-          kubectl apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
-
-          kubectl apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
-          kubectl get po
-    #cd nats-streaming-http-connector/test/nats-streaming-server
-    #      kubectl get po
-     #     kubectl apply -f nats-dep.yaml 
-      #    # Single server NATS      
-      - name: Publish messages to nats server 
-        run: |
-          go version
-          echo "****************************"
-          cd nats-streaming-http-connector/test/producer 
-          docker build -t localhost:5000/producer:latest . 
-          docker push localhost:5000/producer:latest 
-          kubectl run nats-pub -l app=nats-pub --image=localhost:5000/producer:latest
-          kubectl get po -l app=nats-pub
-        # kubectl wait pod -l app=nats-pub --for=condition=ready --timeout=120s 
-      - name: Run fission for nats connector 
-        run: | 
-          kubectl get po 
-          fission mqt create --name natstest --function helloworld --mqtype nats-streaming --topic hello  --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello  --metadata queueGroup=grp1 --metadata durableName=due  --metadata natsServerMonitoringEndpoint=nats-streaming-server.default.svc.cluster.local:8222  --metadata clusterId=test-cluster --metadata clientId=stan-sub  --metadata natsServer=nats://nats-streaming-server.default.svc.cluster.local:4222
-          sleep 60
-          kubectl get pods 
-          kubectl logs -l app=nats-pub 
-          kubectl logs -l app=nats 
-          kubectl describe deploy | grep -i image
-          
-      - name: Validate and test nats connector
-        run: | 
-          sleep 120    
-          kubectl get pods 
-          kubectl logs -l app=nats-pub 
-          kubectl logs -l app=nats           
-          kubectl get po    
-                    
-  nats2: 
     needs: check 
     if: contains(needs.check.outputs.packages, 'natschanges') 
     runs-on: ubuntu-latest 
@@ -340,7 +233,7 @@ jobs:
           kubectl describe deploy | grep -i image
           i=0; while [[ $i -lt 10 ]]; do i=`expr $i + 1` && kubectl logs -n rabbits deployment.apps/rabbitmq-consumer;kubectl get po -n rabbits; sleep 5s; done 
                   
-  sqs2: 
+  sqs: 
     needs: check 
     if: contains(needs.check.outputs.packages, 'sqschanges') 
     runs-on: ubuntu-latest   
