@@ -1,0 +1,426 @@
+name: Integration Test
+on: 
+  push:
+    branches: 
+      - feature/tests
+  pull_request: 
+    branches: 
+      - feature/tests 
+jobs: 
+  check: 
+    runs-on: ubuntu-latest 
+    outputs: 
+      packages: ${{ steps.filter.outputs.changes }} 
+    steps:
+    - name: Checkout the current repo
+      uses: actions/checkout@v1 
+    - uses: dorny/paths-filter@v2 
+      id: filter 
+      with: 
+        filters: | 
+          kafkachanges: 
+            - 'kafka-http-connector/**'
+          rabbitmqchanges: 
+            - 'rabbitmq-http-connector/**' 
+          sqschanges: 
+            - 'aws-sqs-http-connector/**' 
+          natschanges: 
+            - 'nats-streaming-http-connector/**'
+# job for nats streaming http connector
+
+  sqs: 
+    needs: check 
+    if: contains(needs.check.outputs.packages, 'sqschanges') 
+    runs-on: ubuntu-latest   
+    steps: 
+      - name: Checkout the current repo 
+        uses: actions/checkout@v1 
+      - name: Create kind cluster 
+        uses: helm/kind-action@v1.1.0 
+      - name: install keda and fission 
+        run: | 
+          chmod +x test/install.sh 
+          test/install.sh 
+      - name: Create Docker Image for SQS KEDA Connector 
+        run: | 
+           cd aws-sqs-http-connector
+           docker build -t localhost:5000/aws-sqs-connector:latest . 
+           docker push localhost:5000/aws-sqs-connector:latest
+
+      - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
+        run: | 
+          cd aws-sqs-http-connector/test/kubernetes 
+          docker build -t localhost:5000/aws-sqs-test-connector:latest . 
+          docker push localhost:5000/aws-sqs-test-connector:latest 
+          sleep 30
+          kubectl apply -f localstack.yaml 
+      - name: Build SQS test queue 
+        run: | 
+          cd aws-sqs-http-connector/test/validate 
+          docker build -t localhost:5000/test-queue:latest . 
+          docker push localhost:5000/test-queue:latest 
+          kubectl apply -f test.yaml 
+          kubectl logs -l app=queue
+      - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
+        run: |
+          cd aws-sqs-http-connector/test/kubernetes 
+          
+          fission mqt create --name sqstest --function helloworld --mqtype aws-sqs-queue  \
+            --topic my_queue --resptopic responseTopic --mqtkind keda --errortopic errorTopic \
+            --maxretries 3 --metadata queueURL=http://localstack:31000/queue/my_queue \
+            --metadata identityOwner=operator --metadata awsRegion=us-east-1 --cooldownperiod=30 --pollinginterval=5 
+             
+          i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; sleep 5s; done 
+   
+      - name: Get SQS consumed messages from queue 
+        run: | 
+          kubectl describe deploy | grep -i image
+          i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; kubectl logs -l app=queue --all-containers=true; sleep 5s; done 
+  nats: 
+    needs: check 
+    if: contains(needs.check.outputs.packages, 'natschanges') 
+    runs-on: ubuntu-latest 
+    steps: 
+      - name: Checkout the current repo 
+        uses: actions/checkout@v1 
+      - name: Create kind cluster 
+        uses: helm/kind-action@v1.1.0 
+      - name: install keda and fission 
+        run: |
+          chmod +x test/install.sh 
+          test/install.sh 
+         # fission env create --name goenv --image fission/go-env --builder fission/go-builder
+      - name: Create Docker Image for Nats Streaming KEDA Connector 
+        run: | 
+          cd nats-streaming-http-connector/ 
+          docker build -t localhost:5000/nats-steaming:latest . 
+          docker push localhost:5000/nats-steaming:latest 
+      - name: Create Nats Streaming server 
+        run: | 
+
+          kubectl apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-server/single-server-nats.yml
+
+          kubectl apply -f https://raw.githubusercontent.com/nats-io/k8s/master/nats-streaming-server/single-server-stan.yml
+          kubectl get po
+    #cd nats-streaming-http-connector/test/nats-streaming-server
+    #      kubectl get po
+     #     kubectl apply -f nats-dep.yaml 
+      #    # Single server NATS      
+      - name: Publish messages to nats server 
+        run: |
+          go version
+          echo "****************************"
+          cd nats-streaming-http-connector/test/producer 
+          docker build -t localhost:5000/producer:latest . 
+          docker push localhost:5000/producer:latest 
+          kubectl run nats-pub -l app=nats-pub --image=localhost:5000/producer:latest
+          kubectl get po -l app=nats-pub
+        # kubectl wait pod -l app=nats-pub --for=condition=ready --timeout=120s 
+      - name: Run fission for nats connector 
+        run: | 
+          kubectl get po 
+          fission mqt create --name natstest --function helloworld --mqtype nats-streaming --topic hello  --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello  --metadata queueGroup=grp1 --metadata durableName=due  --metadata natsServerMonitoringEndpoint=nats-streaming-server.default.svc.cluster.local:8222  --metadata clusterId=test-cluster --metadata clientId=stan-sub  --metadata natsServer=nats://nats-streaming-server.default.svc.cluster.local:4222
+          sleep 60
+          kubectl get pods 
+          kubectl logs -l app=nats-pub 
+          kubectl logs -l app=nats 
+          kubectl describe deploy | grep -i image
+          
+      - name: Validate and test nats connector
+        run: | 
+          sleep 120    
+          kubectl get pods 
+          kubectl logs -l app=nats-pub 
+          kubectl logs -l app=nats           
+          kubectl get po    
+                    
+  nats2: 
+    needs: check 
+    if: contains(needs.check.outputs.packages, 'natschanges') 
+    runs-on: ubuntu-latest 
+    steps: 
+      - name: Checkout the current repo 
+        uses: actions/checkout@v1 
+      - name: Create kind cluster 
+        uses: helm/kind-action@v1.1.0 
+      - name: Helm installation
+        uses: Azure/setup-helm@v1
+        with:
+          version: v3.3.4        
+      - name: install keda and fission 
+        run: |
+          chmod +x test/install.sh 
+          test/install.sh 
+      - name: Build and Push the docker image nats
+        uses: docker/build-push-action@v2
+        with:
+          context: nats-streaming-http-connector/
+          tags:  localhost:5000/nats-steaming:latest
+          push: true          
+      - name: Create Nats Streaming server 
+        run: | 
+          cd nats-streaming-http-connector/test/nats-streaming-server
+          kubectl get po
+          kubectl apply -f nats-dep.yaml 
+      - name: Create fission environment, package and producer function
+        run: |
+           helm list
+           fission env create --name goenv --image fission/go-env 
+           cd nats-streaming-http-connector/test/producer
+           zip -qr nats-pkg.zip *
+           fission package create --env goenv --name nats-zip --src nats-pkg.zip
+           sleep 120
+           kubectl --namespace fission port-forward $(kubectl --namespace fission get pod -l svc=router -o name) 3639:8888
+           export FISSION_ROUTER=127.0.0.1:3639 
+           fission pkg list
+           fission pkg info --name nats-zip
+           fission fn create --name producerfunc --env goenv --pkg nats-zip --entrypoint main
+           echo "producerfunc logs"
+           fission fn logs --name producerfunc      
+           fission pkg list 
+           
+           fission fn logs --name producerfunc 
+           fission function test --name producerfunc --verbosity=2 --timeout=240s &&  fission support dump
+           
+           fission fn list
+     
+       #   zip -qr nats.zip nats-streaming-http-connector/test/producer/producer.go
+        #   fission package create --env goenv --name nats-zip --src nats.zip 
+        #   sleep 30
+        #   fission package info --name nats-zip 
+      - name: Create fission environment and consumer  function
+        run: |
+           fission env create --name nodeenv --image fission/node-env
+           fission fn create --name consumerfunc --env nodeenv --src nats-streaming-http-connector/test/consumer/hellonats.js   
+           kubectl get po --all-namespaces
+           fission fn logs --name consumerfunc
+           fission fn list
+           sleep 240
+       # kubectl -n fission-function logs -f       
+      - name: Run fission for nats connector 
+        run: | 
+            fission mqt create --name natstest --function consumerfunc --mqtype stan --topic hello --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello --metadata queueGroup=grp1 --metadata durableName=due --metadata natsServerMonitoringEndpoint=nats-streaming.fission:8222 --metadata clusterId=fissionMQTrigger --metadata clientId=clientPub --metadata natsServer=nats://defaultFissionAuthToken@nats-streaming:4222
+            sleep 20
+            kubectl get po --all-namespaces
+        # fission mqt create --name natstest --function producerfunc --mqtype nats-streaming --topic hello  --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=hello  --metadata queueGroup=grp1 --metadata durableName=due  --metadata natsServerMonitoringEndpoint=nats-streaming-server.default.svc.cluster.local:8222  --metadata clusterId=test-cluster --metadata clientId=stan-sub  --metadata natsServer=nats://nats-streaming-server.default.svc.cluster.local:4222          
+       #fission mqt create  --name natstest --function helloworld --mqtype stan --topic request --resptopic response --mqtkind keda --errortopic error --maxretries 3 --metadata subject=request --metadata queueGroup=grp1 --metadata durableName=due --metadata natsServerMonitoringEndpoint=nats-monitor.default.svc.cluster.local:8222 --metadata clusterId=test-cluster --metadata clientId=stan-sub --metadata natsServer=nats://nats-monitor:4222
+          
+      - name: Validate and test nats connector
+        run: | 
+          sleep 120
+          kubectl describe deploy --all-namespaces
+          echo "**************************************************************************"
+          kubectl get po --all-namespaces
+          kubectl describe deploy | grep -i image
+          kubectl logs -l app=nats
+          echo "*************describe deloy******************"
+          kubectl describe deploy
+          echo "***************describe po ***************"
+          kubectl describe po 
+          fission fn test --name producerfunc
+          sleep 60
+          kubectl get pods  --all-namespaces     
+          echo "******producer logs*************"
+          fission fn logs --name producerfunc
+          echo "*****************"
+          fission fn logs --name consumerfunc
+          
+                    
+# job for kafka connector
+  kafka: 
+    needs: check 
+    if: contains(needs.check.outputs.packages, 'kafkachanges') 
+    runs-on: ubuntu-latest 
+    steps: 
+      - name: Checkout the current repo 
+        uses: actions/checkout@v1 
+      - name: Create kind cluster 
+        uses: helm/kind-action@v1.1.0 
+      - name: install keda and fission 
+        run: | 
+          chmod +x test/install.sh 
+          test/install.sh 
+      - name: Create Docker Image for Kafka KEDA Connector 
+        run: | 
+          cd kafka-http-connector/     
+          docker build -t localhost:5000/kafka-connector:latest . 
+          docker push localhost:5000/kafka-connector:latest 
+      - name: Deploy Kafka cluster 
+        run: | 
+          cd kafka-http-connector/test/kubernetes/ 
+          kubectl create namespace kafka 
+          curl -L http://strimzi.io/install/latest | sed 's/namespace: .*/namespace: kafka/' | kubectl apply -f - -n kafka 
+          sleep 10s 
+           kubectl apply -f kafka-cluster.yaml -n kafka
+          echo "Kafka Cluster is getting up." 
+          kubectl wait -f kafka-cluster.yaml --for=condition=ready --timeout=-1s -n kafka 
+          sleep 2m 
+          kubectl get pods -n kafka 
+          kubectl wait pod -l app.kubernetes.io/name=zookeeper --for=condition=ready --timeout=-1s -n kafka 
+      - name: Create Kafka topics 
+        run: | 
+          cd kafka-http-connector/test/kubernetes/ 
+          kubectl apply -f kafka-req-topic.yaml 
+          kubectl apply -f kafka-err-topic.yaml 
+          kubectl apply -f kafka-res-topic.yaml 
+      - name: Run fission for kafka connector 
+        run: >
+          fission mqt create --name kafkatest --function helloworld --mqtype kafka 
+          --mqtkind keda --topic request-topic --resptopic response-topic 
+          --errortopic error-topic --maxretries 3 
+          --metadata bootstrapServers=my-cluster-test-kafka-bootstrap.kafka.svc:9092 
+          --metadata consumerGroup=bridge-quickstart-consumer-group --metadata topic=request-topic 
+          --cooldownperiod=30 --pollinginterval=5 
+   #   - name: Produce Kafka messages Using Producer 
+    #    run: | 
+     #     cd kafka-http-connector/test/kubernetes/ 
+      #    kubectl apply -f kafka-produer.yaml 
+       #   kubectl wait -f kafka-produer.yaml --for=condition=complete --timeout=-1s 
+        #  kubectl delete job pi kubectl logs -l app=kafkatest --all-containers=true
+         # kubectl get po 
+         # kubectl describe deploy | grep -i image
+
+  rabbitmq: 
+    needs: check 
+    if: contains(needs.check.outputs.packages, 'rabbitmqchanges') 
+    runs-on: ubuntu-latest 
+    steps: 
+      - name: Checkout the current repo 
+        uses: actions/checkout@v1 
+      - name: Create kind cluster 
+        uses: helm/kind-action@v1.1.0 
+      - name: install keda and fission 
+        run: | 
+          chmod +x test/install.sh
+          test/install.sh 
+      - name: Create Docker Image for Rabbitmq KEDA Connector 
+        run: | 
+          cd rabbitmq-http-connector/ 
+          docker build -t localhost:5000/rabbit-keda:latest . 
+          docker push localhost:5000/rabbit-keda:latest 
+      - name: Create Rabbitmq Docker Image for Publisher 
+        run: | 
+          cd rabbitmq-http-connector/test/publisher/ 
+          docker build -t localhost:5000/rabbit-publisher:latest . 
+          docker push localhost:5000/rabbit-publisher:latest 
+      - name: Create Rabbitmq Docker Image for Consumer 
+        run: | 
+          cd rabbitmq-http-connector/test/consumer/ 
+          docker build -t localhost:5000/rabbit-consumer:latest . 
+          docker push localhost:5000/rabbit-consumer:latest 
+      - name: Deploy Rabbitmq Deployment files 
+        run: | 
+          cd rabbitmq-http-connector/test/kubernetes/ 
+          kubectl create ns rabbits 
+          kubectl apply -n rabbits -f rabbit-rbac.yaml 
+          kubectl apply -n rabbits -f rabbit-configmap.yaml 
+          kubectl apply -n rabbits -f rabbit-secret.yaml 
+          kubectl apply -n rabbits -f rabbit-statefulset.yaml 
+          bash rabbitmq-cluster-instances.sh 
+      - name: Publish Rabbitmq messages in a queue 
+        run: | 
+          cd rabbitmq-http-connector/test/publisher/ 
+          kubectl apply -f deployment.yaml 
+          kubectl apply -f publisher-job.yaml 
+      - name: Bring up the Rabbitmq consumer queue and Listen for incoming messages
+        run: | 
+          cd rabbitmq-http-connector/test/consumer/ 
+          kubectl apply -f consumer-deployment.yaml 
+      - name: Run fission for rabbitmq connector 
+        run: |
+          fission mqt create --name rabbitmqtest --function helloworld --mqtype rabbitmq \
+          --topic request --resptopic response --mqtkind keda --errortopic error --maxretries 3 \
+          --metadata queueName=request --cooldownperiod=30 --pollinginterval=5 \
+          --secret rabbitmq-consumer
+          kubectl get po -n rabbits
+       # kubectl wait pod -l app=rabbitmqtest --for=condition=ready --timeout=-1s 
+      - name: Get Rabbitmq consumed messages from queue 
+        run: | 
+          sleep 20s 
+          kubectl describe deploy | grep -i image
+          i=0; while [[ $i -lt 10 ]]; do i=`expr $i + 1` && kubectl logs -n rabbits deployment.apps/rabbitmq-consumer;kubectl get po -n rabbits; sleep 5s; done 
+                  
+  sqs2: 
+    needs: check 
+    if: contains(needs.check.outputs.packages, 'sqschanges') 
+    runs-on: ubuntu-latest   
+    steps: 
+      - name: Checkout the current repo 
+        uses: actions/checkout@v2 
+        with:
+          ref: feature/integration-tests
+      - name: Create kind cluster 
+        uses: helm/kind-action@v1.1.0 
+      - name: install keda and fission 
+        run: | 
+          chmod +x test/install.sh 
+          test/install.sh 
+      - name: Create Docker Image for SQS KEDA Connector 
+        run: | 
+           cd aws-sqs-http-connector
+           docker build -t localhost:5000/aws-sqs-connector:latest . 
+           docker push localhost:5000/aws-sqs-connector:latest
+      - name: Create fission environment, package and producer function
+        run: |
+           helm list   
+           cd aws-sqs-http-connector/test/producer/
+           zip -qr sqs.zip *        
+           fission env create --name goenv --image fission/go-env-1.14 --builder fission/go-builder-1.14
+           fission package create --env goenv --src sqs.zip --name sqs
+           fission pkg list             
+           fission pkg info --name sqs    
+           sleep 120                                     
+      - name: Create fission environment and consumer  function
+        run: |
+           fission env create --name nodeenv --image fission/node-env:latest
+           cd aws-sqs-http-connector/test/consumer
+           fission fn create --name consumerfunc --env nodeenv --src ./consumer.js   
+           kubectl get po --all-namespaces
+           fission fn logs --name consumerfunc
+           fission fn list           
+           
+      - name: Create SQS Docker image with AWS CLI in KEDA Connetor 
+        run: | 
+          cd aws-sqs-http-connector/test/kubernetes 
+          docker build -t localhost:5000/aws-sqs-test-connector:latest . 
+          docker push localhost:5000/aws-sqs-test-connector:latest 
+          kubectl apply -f localstack.yaml     
+
+      - name: Build SQS test queue 
+        run: | 
+          kubectl apply -f aws-sqs-http-connector/test/kubernetes/localstack.yaml 
+          cd aws-sqs-http-connector/test/validate 
+          docker build -t localhost:5000/test-queue:latest . 
+          docker push localhost:5000/test-queue:latest 
+          kubectl apply -f test.yaml 
+          kubectl apply -f svc.yaml
+          kubectl get po 
+          sleep 240
+          kubectl logs -l app=queue --all-containers=true
+          kubectl --namespace fission-function logs -l functionName=producerfunc
+          kubectl get svc -n fission     
+          kubectl describe svc router -n fission
+          kubectl get po -n fission
+          fission pkg list             
+          fission pkg info --name sqs
+          fission fn create --name producerfunc --pkg sqs --env goenv  --entrypoint main
+          fission pkg info --name sqs
+          fission function list
+          fission function test --name producerfunc --verbosity=2  
+          
+      - name: Deploy SQS Keda Connector, Keda ScaledObject and Localstack 
+        run: |
+          cd aws-sqs-http-connector/test/kubernetes 
+          
+          fission mqt create --name sqstest --function helloworld --mqtype aws-sqs-queue  \
+            --topic my_queue --resptopic responseTopic --mqtkind keda --errortopic errorTopic \
+            --maxretries 3 --metadata queueURL=http://localstack:31000/queue/my_queue \
+            --metadata identityOwner=operator --metadata awsRegion=us-east-1 --cooldownperiod=30 --pollinginterval=5 
+             
+          i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; sleep 5s; done 
+   
+      - name: Get SQS consumed messages from queue 
+        run: | 
+          kubectl describe deploy | grep -i image
+          i=0; while [[ $i -lt 20 ]]; do i=`expr $i + 1` && kubectl get pods; kubectl logs -l app=queue --all-containers=true; sleep 5s; done 
+          
