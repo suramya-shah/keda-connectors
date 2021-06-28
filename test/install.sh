@@ -10,14 +10,14 @@ helm install keda kedacore/keda --namespace keda
 #cd fission/charts/fission-core 
 export FISSION_NAMESPACE="fission"
 kubectl create namespace $FISSION_NAMESPACE
-kubectl create -k "github.com/fission/fission/crds/v1?ref=1.11.0"
+kubectl create -k "github.com/fission/fission/crds/v1?ref=1.13.1"
 helm repo add fission-charts https://fission.github.io/fission-charts/
 helm repo update
 #helm install  --version 1.13.0 --namespace $FISSION_NAMESPACE  fission fission-charts/fission-core
-helm install  --version 1.11.0 --namespace $FISSION_NAMESPACE  fission fission-charts/fission-all --set mqt_keda.enabled=true --set mqt_keda.connector_images.nats_steaming.image=localhost:5000/nats-steaming --set mqt_keda.connector_images.nats_steaming.tag=latest --set mqt_keda.connector_images.awssqs.image=localhost:5000/aws-sqs-test-connector --set mqt_keda.connector_images.awssqs.tag=latest --set mqt_keda.connector_images.kafka.image=localhost:5000/kafka-connector --set mqt_keda.connector_images.kafka.tag=latest --set mqt_keda.connector_images.rabbitmq.image=localhost:5000/rabbit-keda --set mqt_keda.connector_images.rabbitmq.tag=latest --set routerServiceType=NodePort -n fission
+helm install  --version 1.13.1 --namespace $FISSION_NAMESPACE  fission fission-charts/fission-all --set mqt_keda.enabled=true --set mqt_keda.connector_images.nats_steaming.image=localhost:5000/nats-steaming --set mqt_keda.connector_images.nats_steaming.tag=latest --set mqt_keda.connector_images.awssqs.image=localhost:5000/aws-sqs-test-connector --set mqt_keda.connector_images.awssqs.tag=latest --set mqt_keda.connector_images.kafka.image=localhost:5000/kafka-connector --set mqt_keda.connector_images.kafka.tag=latest --set mqt_keda.connector_images.rabbitmq.image=localhost:5000/rabbit-keda --set mqt_keda.connector_images.rabbitmq.tag=latest --set routerServiceType=NodePort -n fission
 
 # install fission cli
-curl -Lo fission https://github.com/fission/fission/releases/download/1.11.0/fission-1.11.0-linux-amd64 
+curl -Lo fission https://github.com/fission/fission/releases/download/1.13.1/fission-1.13.1-linux-amd64 
 chmod +x fission 
 sudo mv fission /usr/local/bin/
 
